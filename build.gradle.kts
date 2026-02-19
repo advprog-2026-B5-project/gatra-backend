@@ -1,6 +1,5 @@
 plugins {
     java
-    jacoco
     id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -34,8 +33,6 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-thymeleaf-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    runtimeOnly("org.postgresql:postgresql")
-    runtimeOnly("org.postgresql:postgresql")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
@@ -43,18 +40,4 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-tasks.test {
-    useJUnitPlatform()
-    filter{
-        excludeTestsMatching("*FunctionalTest")
-    }
-    // Ensure that the code coverage report is automatically generated after the test task finishes
-    finalizedBy(tasks.jacocoTestReport)
-}
-
-tasks.jacocoTestReport {
-    // Ensure that the test task is executed before generating the coverage report
-    dependsOn(tasks.test)
 }
