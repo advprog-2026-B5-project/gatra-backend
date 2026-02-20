@@ -1,0 +1,50 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ "main", "staging" ]
+  pull_request:
+    branches: [ "main", "staging" ]
+
+jobs:
+  # CI (Quality Check)
+  test:
+    name: Run tests
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java toolchain
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run unit tests and generate coverage
+        run: ./gradlew test jacocoTestReport
+
+      - name: Analyze with SonarCloud
+        env:
+            SONAR_TOKEN: ${{secrets.SONAR_TOKEN}}
+        run: ./gradlew sonar --info
+
+  # CD (Dummy Deployment)
+  deploy:
+    name: Dummy Deployment
+    needs: test
+    # the job will be executed if the 'test' has succeed (green)
+
+
+    if: github.event_name == 'push' # prevent deployment before pull request
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Deploying...
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "Deploying dummy build to PRODUCTION environment..."
+          else
+            echo "Deploying dummy build to STAGING environment..."
+          fi
