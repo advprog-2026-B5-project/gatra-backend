@@ -55,8 +55,8 @@ tasks.jacocoTestReport {
 
 sonar {
     properties {
-        property("sonar.projectKey", "advprog-2026-B5-project_gatra-backend") // Samakan dengan di dashboard SonarCloud
-        property("sonar.organization", "advprog-2026-B5-project")
+        property("sonar.projectKey", "advprog-2026-B5-project_gatra-backend")
+        property("sonar.organization", "advprog-2026-b5-project")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
     }
