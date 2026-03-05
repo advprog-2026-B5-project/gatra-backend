@@ -19,28 +19,29 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
-        return null; // TODO
+        return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable UUID id) {
-        return null; // TODO
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
-        return null; // TODO
+        return ResponseEntity.ok(categoryService.createCategory(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable UUID id,
             @RequestBody CategoryRequest request) {
-        return null; // TODO
+        return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
-        return null; // TODO
+        categoryService.deleteCategory(id);
+        return ResponseEntity.noContent().build();
     }
 }
