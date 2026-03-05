@@ -46,7 +46,7 @@ class AuthServiceTest {
     private AuthenticationManager authenticationManager;
 
     @InjectMocks
-    private AuthService authService; // Sesuaikan jika nama class service Anda bukan AuthServiceImpl
+    private AuthServiceImpl authService;
 
     private User mockUser;
     private RegisterRequest registerRequest;

@@ -30,7 +30,7 @@ class UserServiceTest {
     private StudentProfileRepository studentProfileRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     private User dummyUser;
     private final UUID dummyId = UUID.randomUUID();
