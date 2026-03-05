@@ -18,29 +18,29 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<?> getAllCategories() {
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return null; // TODO
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getCategoryById(@PathVariable UUID id) {
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable UUID id) {
         return null; // TODO
     }
 
     @PostMapping
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
+    public ResponseEntity<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
         return null; // TODO
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCategory(
+    public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable UUID id,
             @RequestBody CategoryRequest request) {
         return null; // TODO
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
         return null; // TODO
     }
 }

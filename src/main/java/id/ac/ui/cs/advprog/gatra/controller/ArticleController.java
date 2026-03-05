@@ -20,31 +20,31 @@ public class ArticleController {
     private final ArticleService articleService;
 
     @GetMapping
-    public ResponseEntity<?> getAllArticles() {
+    public ResponseEntity<List<ArticleResponse>> getAllArticles() {
         return null; // TODO
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getArticleById(@PathVariable UUID id) {
+    public ResponseEntity<ArticleResponse> getArticleById(@PathVariable UUID id) {
         return null; // TODO
     }
 
     @PostMapping
-    public ResponseEntity<?> createArticle(
+    public ResponseEntity<ArticleResponse> createArticle(
             @RequestBody ArticleRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
         return null; // TODO
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateArticle(
+    public ResponseEntity<ArticleResponse> updateArticle(
             @PathVariable UUID id,
             @RequestBody ArticleRequest request) {
         return null; // TODO
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteArticle(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteArticle(@PathVariable UUID id) {
         return null; // TODO
     }
 }
