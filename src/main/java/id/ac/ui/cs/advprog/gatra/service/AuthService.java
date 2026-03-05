@@ -12,6 +12,7 @@ import id.ac.ui.cs.advprog.gatra.dto.AuthResponse;
 import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +77,7 @@ public class AuthService {
                 .orElseThrow(() -> new IllegalArgumentException("Email atau Nomor HP tidak ditemukan"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Password salah");
+            throw new BadCredentialsException("Email/Nomor HP atau Password salah");
         }
 
         String jwtToken = jwtUtil.generateToken(user);
