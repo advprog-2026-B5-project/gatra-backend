@@ -59,7 +59,6 @@ class ArticleControllerTest {
                 .createdBy(DUMMY_USERNAME)
                 .build();
 
-        when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME);
     }
 
 
@@ -98,6 +97,7 @@ class ArticleControllerTest {
 
     @Test
     void createArticle_whenValid_shouldReturnOk() {
+        when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME); // ← pindah ke sini
         when(articleService.createArticle(any(ArticleRequest.class), eq(DUMMY_USERNAME)))
                 .thenReturn(response);
 

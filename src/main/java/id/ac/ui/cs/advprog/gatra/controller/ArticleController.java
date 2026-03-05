@@ -21,30 +21,31 @@ public class ArticleController {
 
     @GetMapping
     public ResponseEntity<List<ArticleResponse>> getAllArticles() {
-        return null; // TODO
+        return ResponseEntity.ok(articleService.getAllArticles());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ArticleResponse> getArticleById(@PathVariable UUID id) {
-        return null; // TODO
+        return ResponseEntity.ok(articleService.getArticleById(id));
     }
 
     @PostMapping
     public ResponseEntity<ArticleResponse> createArticle(
             @RequestBody ArticleRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return null; // TODO
+        return ResponseEntity.ok(articleService.createArticle(request, userDetails.getUsername()));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ArticleResponse> updateArticle(
             @PathVariable UUID id,
             @RequestBody ArticleRequest request) {
-        return null; // TODO
+        return ResponseEntity.ok(articleService.updateArticle(id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteArticle(@PathVariable UUID id) {
-        return null; // TODO
+        articleService.deleteArticle(id);
+        return ResponseEntity.noContent().build();
     }
 }
