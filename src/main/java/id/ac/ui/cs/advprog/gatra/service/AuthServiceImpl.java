@@ -74,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByUserIdentifier(request.getIdentifier())
-                .orElseThrow(() -> new IllegalArgumentException("Email atau Nomor HP tidak ditemukan"));
+                .orElseThrow(() -> new BadCredentialsException("Email atau Nomor HP tidak ditemukan"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new BadCredentialsException("Email/Nomor HP atau Password salah");
