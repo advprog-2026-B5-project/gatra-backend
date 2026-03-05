@@ -63,4 +63,22 @@ public class UserServiceImpl implements UserService {
                 .build()
         ).collect(Collectors.toList());
     }
+
+    @Override
+    public UserResponse getUserById(UUID id) {
+        // 1. Cari user di database
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+
+        // 2. Ubah (Map) menjadi UserResponse agar password tidak ikut terkirim
+        // (Sesuaikan field-nya dengan isi class UserResponse Anda ya!)
+        return UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .displayName(user.getDisplayName())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .build();
+    }
 }

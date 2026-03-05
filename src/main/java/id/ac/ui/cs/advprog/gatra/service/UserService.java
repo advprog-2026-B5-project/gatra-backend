@@ -11,5 +11,6 @@ public interface UserService {
     void deleteUserById(UUID userId);
     User updateUser(UUID userId, String newDisplayName, String newPhoneNumber);
     List<UserResponse> getAllUsers();
+    UserResponse getUserById(UUID id);
 
 }
