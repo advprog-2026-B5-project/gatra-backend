@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.gatra.dto.AuthResponse;
 import id.ac.ui.cs.advprog.gatra.dto.LoginRequest;
 import id.ac.ui.cs.advprog.gatra.dto.RegisterRequest;
-import id.ac.ui.cs.advprog.gatra.model.Role;
-import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
 import id.ac.ui.cs.advprog.gatra.service.AuthService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -25,7 +25,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthController.class)
+@WebMvcTest(
+        controllers = AuthController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ClientAutoConfiguration.class
+        }
+)
 @AutoConfigureMockMvc(addFilters = false) // Matikan filter JWT untuk mempermudah tes controller murni
 class AuthControllerTest {
 

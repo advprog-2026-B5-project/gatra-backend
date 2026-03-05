@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -93,5 +94,29 @@ class UserServiceTest {
         // Pastikan profile dihapus dulu, baru usernya
         verify(studentProfileRepository, times(1)).deleteById(dummyId);
         verify(userRepository, times(1)).delete(dummyUser);
+    }
+
+    @Test
+    void testGetUserById_Success() {
+        UUID dummyId = dummyUser.getId();
+        Mockito.when(userRepository.findById(dummyId)).thenReturn(Optional.of(dummyUser));
+
+        UserResponse response = userService.getUserById(dummyId);
+
+        assertNotNull(response);
+        assertEquals(dummyUser.getUsername(), response.getUsername());
+        assertEquals(dummyUser.getEmail(), response.getEmail());
+    }
+
+    @Test
+    void testGetUserById_Failed_NotFound() {
+        UUID dummyId = UUID.randomUUID();
+        Mockito.when(userRepository.findById(dummyId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.getUserById(dummyId);
+        });
+
+        assertEquals("User tidak ditemukan", exception.getMessage());
     }
 }

@@ -9,6 +9,8 @@ import id.ac.ui.cs.advprog.gatra.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -25,7 +27,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UserController.class)
+@WebMvcTest(
+        controllers = UserController.class,
+        excludeAutoConfiguration = {
+                SecurityAutoConfiguration.class,
+                OAuth2ClientAutoConfiguration.class
+        }
+)
 @AutoConfigureMockMvc(addFilters = false) // Matikan filter JWT untuk mempermudah tes controller murni
 class UserControllerTest {
 
@@ -147,5 +155,41 @@ class UserControllerTest {
         mockMvc.perform(delete("/api/users/" + dummyId))
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().string("Terjadi kesalahan pada server saat menghapus user"));
+    }
+
+    @Test
+    void testGetUserById_ReturnsOk() throws Exception {
+        UserResponse response = UserResponse.builder()
+                .id(dummyId)
+                .username("anya")
+                .email("anya@gatra.com")
+                .build();
+
+        Mockito.when(userService.getUserById(dummyId)).thenReturn(response);
+
+        mockMvc.perform(get("/api/users/" + dummyId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("anya"))
+                .andExpect(jsonPath("$.email").value("anya@gatra.com"));
+    }
+
+    @Test
+    void testGetUserById_ReturnsBadRequest_WhenNotFound() throws Exception {
+        Mockito.when(userService.getUserById(dummyId))
+                .thenThrow(new IllegalArgumentException("User tidak ditemukan"));
+
+        mockMvc.perform(get("/api/users/" + dummyId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("User tidak ditemukan"));
+    }
+
+    @Test
+    void testGetUserById_ReturnsInternalServerError() throws Exception {
+        Mockito.when(userService.getUserById(dummyId))
+                .thenThrow(new RuntimeException("Database error"));
+
+        mockMvc.perform(get("/api/users/" + dummyId))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Terjadi kesalahan pada server saat mengambil data profil"));
     }
 }
