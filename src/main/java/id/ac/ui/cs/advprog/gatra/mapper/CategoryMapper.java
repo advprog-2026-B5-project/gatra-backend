@@ -7,6 +7,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class CategoryMapper {
     public CategoryResponse toResponse(Category category) {
-        return null; // TODO: implement
+        return CategoryResponse.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .build();
     }
 }
