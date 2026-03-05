@@ -58,4 +58,17 @@ public class UserController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable UUID id) {
+        try {
+            UserResponse response = userService.getUserById(id);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            // Jika user tidak ada di database, kembalikan status 404 (Not Found) atau 400 (Bad Request)
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Terjadi kesalahan pada server saat mengambil data profil");
+        }
+    }
 }
