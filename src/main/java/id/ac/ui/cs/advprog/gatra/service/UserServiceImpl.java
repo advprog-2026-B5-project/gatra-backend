@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -36,12 +37,15 @@ public class UserServiceImpl implements UserService {
     public User updateUser(UUID userId, String newDisplayName, String newPhoneNumber) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
-        if (newDisplayName != null && !newDisplayName.trim().isEmpty()) {
-            user.setDisplayName(newDisplayName);
-        }
-        if (newPhoneNumber != null && !newPhoneNumber.trim().isEmpty()) {
-            user.setPhoneNumber(newPhoneNumber);
-        }
+
+        Optional.ofNullable(newDisplayName)
+                .filter(s -> !s.trim().isEmpty())
+                .ifPresent(user::setDisplayName);
+
+        Optional.ofNullable(newPhoneNumber)
+                .filter(s -> !s.trim().isEmpty())
+                .ifPresent(user::setPhoneNumber);
+
         return userRepository.save(user);
     }
 
