@@ -25,7 +25,6 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User dengan ID tersebut tidak ditemukan"));
 
-        // Hapus Profile-nya terlebih dahulu (Mencegah Error Foreign Key)
         if (user.getRole() == Role.ROLE_STUDENT) {
             studentProfileRepository.deleteById(userId);
         }
@@ -45,14 +44,12 @@ public class UserService {
             user.setPhoneNumber(newPhoneNumber);
         }
 
-        // 3. Simpan perubahan ke database
         return userRepository.save(user);
     }
 
     public List<UserResponse> getAllUsers() {
         List<User> users = userRepository.findAll();
 
-        // Map setiap entitas User menjadi UserResponse DTO
         return users.stream().map(user -> UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
