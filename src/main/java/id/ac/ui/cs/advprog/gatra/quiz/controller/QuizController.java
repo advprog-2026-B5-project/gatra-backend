@@ -16,7 +16,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/quiz")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+
 public class QuizController {
 
     private final QuizService quizService;
