@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
 
 import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.model.MultipleChoiceQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,13 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Question createQuestion(CreateQuestionRequest request) {
-        return null;
+
+        MultipleChoiceQuestion question = new MultipleChoiceQuestion();
+        question.setText(request.getText());
+        question.setOptions(request.getOptions());
+        question.setCorrectAnswer(request.getCorrectAnswer());
+
+        return questionRepository.save(question);
     }
 
     @Override
