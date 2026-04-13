@@ -38,6 +38,11 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getQuestionById(id));
     }
 
+    @GetMapping("/article/{articleId}")
+    public ResponseEntity<List<Question>> getQuestionsByArticle(@PathVariable UUID articleId) {
+        return ResponseEntity.ok(quizService.getQuestionsByArticle(articleId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
         quizService.deleteQuestion(id);
