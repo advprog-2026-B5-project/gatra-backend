@@ -15,4 +15,6 @@ public interface QuizService {
     Question getQuestionById(UUID id);
 
     void deleteQuestion(UUID id);
+
+    List<Question> getQuestionsByArticle(UUID articleId);
 }

@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
-
+import id.ac.ui.cs.advprog.gatra.model.Article;
+import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.MultipleChoiceQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
@@ -16,13 +17,18 @@ public class QuizServiceImpl implements QuizService {
 
     private final QuestionRepository questionRepository;
 
+    private final ArticleRepository articleRepository;
+
     @Override
     public Question createQuestion(CreateQuestionRequest request) {
+        Article article = articleRepository.findById(request.getArticleId())
+                .orElseThrow(() -> new RuntimeException("Article not found"));
 
         MultipleChoiceQuestion question = new MultipleChoiceQuestion();
         question.setText(request.getText());
         question.setOptions(request.getOptions());
         question.setCorrectAnswer(request.getCorrectAnswer());
+        question.setArticle(article);
 
         return questionRepository.save(question);
     }
@@ -41,5 +47,10 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public void deleteQuestion(UUID id) {
         questionRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Question> getQuestionsByArticle(UUID articleId) {
+        return questionRepository.findByArticleId(articleId);
     }
 }
