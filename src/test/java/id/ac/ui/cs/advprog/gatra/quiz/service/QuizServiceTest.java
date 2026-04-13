@@ -43,4 +43,21 @@ class QuizServiceTest {
         assertNotNull(result);
         verify(questionRepository, times(1)).save(any());
     }
+
+    @Test
+    void shouldGetQuestionByIdSuccessfully() {
+
+        UUID id = UUID.randomUUID();
+
+        Question mockQuestion = mock(Question.class);
+
+        when(questionRepository.findById(id)).thenReturn(java.util.Optional.of(mockQuestion));
+
+        Question result = quizService.getQuestionById(id);
+
+        assertNotNull(result);
+        assertEquals(mockQuestion, result);
+
+        verify(questionRepository, times(1)).findById(id);
+    }
 }
