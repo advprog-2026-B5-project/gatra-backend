@@ -3,6 +3,9 @@ package id.ac.ui.cs.advprog.gatra.quiz.controller;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.service.QuizService;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.PassingScoreRequest;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +41,23 @@ public class QuizController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable UUID id) {
         quizService.deleteQuestion(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Question> updateQuestion(
+            @PathVariable UUID id,
+            @RequestBody UpdateQuestionRequest request
+    ) {
+        return ResponseEntity.ok(quizService.updateQuestion(id, request));
+    }
+
+    @PatchMapping("/passing-score/{articleId}")
+    public ResponseEntity<Void> setPassingScore(
+            @PathVariable UUID articleId,
+            @RequestBody PassingScoreRequest request
+    ) {
+        quizService.setPassingScore(articleId, request.getPassingScore());
         return ResponseEntity.noContent().build();
     }
 

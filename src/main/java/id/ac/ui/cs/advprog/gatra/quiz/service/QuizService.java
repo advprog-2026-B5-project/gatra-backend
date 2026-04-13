@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
 
 import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 
 import java.util.List;
@@ -17,4 +18,8 @@ public interface QuizService {
     void deleteQuestion(UUID id);
 
     List<Question> getQuestionsByArticle(UUID articleId);
+
+    Question updateQuestion(UUID id, UpdateQuestionRequest request);
+
+    void setPassingScore(UUID articleId, Integer passingScore);
 }

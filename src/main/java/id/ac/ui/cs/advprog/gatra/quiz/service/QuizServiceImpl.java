@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.quiz.service;
 import id.ac.ui.cs.advprog.gatra.model.Article;
 import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.MultipleChoiceQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
@@ -52,5 +53,26 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public List<Question> getQuestionsByArticle(UUID articleId) {
         return questionRepository.findByArticleId(articleId);
+    }
+
+    @Override
+    public Question updateQuestion(UUID id, UpdateQuestionRequest request) {
+        MultipleChoiceQuestion question = (MultipleChoiceQuestion) questionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setText(request.getText());
+        question.setOptions(request.getOptions());
+        question.setCorrectAnswer(request.getCorrectAnswer());
+
+        return questionRepository.save(question);
+    }
+
+    @Override
+    public void setPassingScore(UUID articleId, Integer passingScore) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        article.setPassingScore(passingScore);
+        articleRepository.save(article);
     }
 }
