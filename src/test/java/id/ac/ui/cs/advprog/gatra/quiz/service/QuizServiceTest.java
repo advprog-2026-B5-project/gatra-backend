@@ -60,4 +60,16 @@ class QuizServiceTest {
 
         verify(questionRepository, times(1)).findById(id);
     }
+
+    @Test
+    void shouldDeleteQuestionSuccessfully() {
+
+        UUID id = UUID.randomUUID();
+
+        doNothing().when(questionRepository).deleteById(id);
+
+        quizService.deleteQuestion(id);
+
+        verify(questionRepository, times(1)).deleteById(id);
+    }
 }
