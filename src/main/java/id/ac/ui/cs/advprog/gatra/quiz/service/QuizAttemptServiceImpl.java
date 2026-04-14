@@ -1,0 +1,85 @@
+package id.ac.ui.cs.advprog.gatra.quiz.service;
+
+import id.ac.ui.cs.advprog.gatra.model.Article;
+import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.model.*;
+import id.ac.ui.cs.advprog.gatra.quiz.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+
+@Service
+@RequiredArgsConstructor
+public class QuizAttemptServiceImpl implements QuizAttemptService {
+
+    private final QuizAttemptRepository attemptRepository;
+    private final QuestionRepository questionRepository;
+    private final ArticleRepository articleRepository;
+
+    @Override
+    @Transactional
+    public QuizResultResponse submitQuiz(SubmitQuizRequest request) {
+        // ambil artikel untuk passing score
+        Article article = articleRepository.findById(request.getArticleID()).orElseThrow(() -> new RuntimeException("Article not found"));
+
+        // ambil semua soal artikel ini
+        List<Question> questions = questionRepository.findByArticleId(request.getArticleID());
+
+        List<QuizAnswer> quizAnswers = new ArrayList<>();
+        int correct = 0;
+
+        for (SubmitQuizRequest.AnswerItem item : request.getAnswers()) {
+            Question question = questions.stream()
+                    .filter(q -> q.getId().equals(item.getQuestionID()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Question not found"));
+
+            boolean isCorrect = checkAnswer(question, item.getAnswer());
+            if (isCorrect) correct++;
+
+            QuizAnswer quizAnswer = new QuizAnswer();
+            quizAnswer.setQuestionId(question.getId());
+            quizAnswer.setUserAnswer(item.getAnswer());
+            quizAnswer.setIsCorrect(isCorrect);
+            quizAnswers.add(quizAnswer);
+        }
+
+        float score = questions.isEmpty() ? 0 :
+                ((float) correct / questions.size()) * 100;
+
+        float passingScore = article.getPassingScore();
+        boolean passed = score >= passingScore;
+
+        QuizAttempt attempt = new QuizAttempt();
+        attempt.setUserId(request.getUserID());
+        attempt.setArticleId(request.getArticleID());
+        attempt.setScore(Math.round(score));
+        attempt.setPassed(passed);
+
+        // hubungkan answer ke attempt
+        quizAnswers.forEach(a -> a.setAttempt(attempt));
+        attempt.setAnswers(quizAnswers);
+
+        attemptRepository.save(attempt);
+
+        return new QuizResultResponse(score, passingScore, passed, quizAnswers);
+    }
+
+    @Override
+    public boolean hasUserPassed(UUID userId, UUID articleId) {
+        return attemptRepository.existsByUserIdAndArticleIdAndPassedTrue(userId, articleId);
+    }
+
+    private boolean checkAnswer(Question question, String userAnswer) {
+        if (question instanceof MultipleChoiceQuestion mcq) {
+            return mcq.getCorrectAnswer().equalsIgnoreCase(userAnswer);
+        } else if (question instanceof TrueFalseQuestion tfq) {
+            return tfq.getCorrectAnswer().equalsIgnoreCase(userAnswer);
+        }
+        return false;
+    }
+}

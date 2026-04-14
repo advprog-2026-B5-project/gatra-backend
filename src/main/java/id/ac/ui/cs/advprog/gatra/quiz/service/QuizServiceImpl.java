@@ -55,7 +55,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Question updateQuestion(UUID id, UpdateQuestionRequest request) {
-        Question question = (MultipleChoiceQuestion) questionRepository.findById(id)
+        Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         question.applyUpdate(request);

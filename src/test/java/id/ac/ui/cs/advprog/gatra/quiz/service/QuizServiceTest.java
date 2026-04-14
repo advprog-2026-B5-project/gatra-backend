@@ -29,6 +29,9 @@ class QuizServiceTest {
     @Mock
     private ArticleRepository articleRepository;
 
+    @Mock
+    private QuestionFactory questionFactory;
+
     @InjectMocks
     private QuizServiceImpl quizService;
 
