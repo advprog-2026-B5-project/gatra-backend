@@ -1,10 +1,9 @@
 package id.ac.ui.cs.advprog.gatra.quiz.controller;
 
-import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
+import id.ac.ui.cs.advprog.gatra.quiz.dto.*;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
+import id.ac.ui.cs.advprog.gatra.quiz.service.QuizAttemptService;
 import id.ac.ui.cs.advprog.gatra.quiz.service.QuizService;
-import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
-import id.ac.ui.cs.advprog.gatra.quiz.dto.PassingScoreRequest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,7 @@ import java.util.UUID;
 public class QuizController {
 
     private final QuizService quizService;
+    private final QuizAttemptService quizAttemptService;
 
     @PostMapping
     public ResponseEntity<Question> createQuestion(
@@ -64,6 +64,16 @@ public class QuizController {
     ) {
         quizService.setPassingScore(articleId, request.getPassingScore());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/attempt")
+    public ResponseEntity<QuizResultResponse> submitQuiz(@RequestBody SubmitQuizRequest request) {
+        return ResponseEntity.ok(quizAttemptService.submitQuiz(request));
+    }
+
+    @GetMapping("/attempt/status")
+    public ResponseEntity<Boolean> checkStatus(@RequestParam UUID userId, @RequestParam UUID articleId) {
+        return ResponseEntity.ok(quizAttemptService.hasUserPassed(userId, articleId));
     }
 
 

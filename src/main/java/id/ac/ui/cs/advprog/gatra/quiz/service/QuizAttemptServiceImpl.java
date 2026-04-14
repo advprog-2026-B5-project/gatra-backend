@@ -24,17 +24,17 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     @Transactional
     public QuizResultResponse submitQuiz(SubmitQuizRequest request) {
         // ambil artikel untuk passing score
-        Article article = articleRepository.findById(request.getArticleID()).orElseThrow(() -> new RuntimeException("Article not found"));
+        Article article = articleRepository.findById(request.getArticleId()).orElseThrow(() -> new RuntimeException("Article not found"));
 
         // ambil semua soal artikel ini
-        List<Question> questions = questionRepository.findByArticleId(request.getArticleID());
+        List<Question> questions = questionRepository.findByArticleId(request.getArticleId());
 
         List<QuizAnswer> quizAnswers = new ArrayList<>();
         int correct = 0;
 
         for (SubmitQuizRequest.AnswerItem item : request.getAnswers()) {
             Question question = questions.stream()
-                    .filter(q -> q.getId().equals(item.getQuestionID()))
+                    .filter(q -> q.getId().equals(item.getQuestionId()))
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("Question not found"));
 
@@ -55,8 +55,8 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         boolean passed = score >= passingScore;
 
         QuizAttempt attempt = new QuizAttempt();
-        attempt.setUserId(request.getUserID());
-        attempt.setArticleId(request.getArticleID());
+        attempt.setUserId(request.getUserId());
+        attempt.setArticleId(request.getArticleId());
         attempt.setScore(Math.round(score));
         attempt.setPassed(passed);
 

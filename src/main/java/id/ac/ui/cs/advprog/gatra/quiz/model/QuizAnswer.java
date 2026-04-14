@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.quiz.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,7 @@ public class QuizAnswer {
 
     @ManyToOne
     @JoinColumn(name = "attempt_id")
+    @JsonIgnore
     private QuizAttempt attempt;
 
     @Column(name = "question_id")
