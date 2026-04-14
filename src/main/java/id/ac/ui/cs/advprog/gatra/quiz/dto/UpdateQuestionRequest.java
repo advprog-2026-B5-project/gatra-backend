@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.gatra.quiz.dto;
 import java.util.List;
 
 public class UpdateQuestionRequest {
-
+    private String type; // multiple choice or true false
     private String text;
     private List<String> options;
     private String correctAnswer;
@@ -33,4 +33,5 @@ public class UpdateQuestionRequest {
     public void setCorrectAnswer(String correctAnswer) {
         this.correctAnswer = correctAnswer;
     }
+    public String getType(){return  type;}
 }

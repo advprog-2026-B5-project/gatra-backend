@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class CreateQuestionRequest {
-
+    private String type; // multiple choice or true false
     private String text;
     private List<String> options;
     private String correctAnswer;
@@ -32,4 +32,6 @@ public class CreateQuestionRequest {
     public UUID getArticleId() {
         return articleId;
     }
+
+    public String getType(){return  type;}
 }

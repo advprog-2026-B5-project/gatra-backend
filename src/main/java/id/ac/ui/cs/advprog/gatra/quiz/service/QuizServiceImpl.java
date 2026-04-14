@@ -19,18 +19,16 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
 
     private final ArticleRepository articleRepository;
+    private final QuestionFactory questionFactory;
 
     @Override
     public Question createQuestion(CreateQuestionRequest request) {
         Article article = articleRepository.findById(request.getArticleId())
                 .orElseThrow(() -> new RuntimeException("Article not found"));
 
-        MultipleChoiceQuestion question = new MultipleChoiceQuestion();
-        question.setText(request.getText());
-        question.setOptions(request.getOptions());
-        question.setCorrectAnswer(request.getCorrectAnswer());
+        Question question = questionFactory.create(request.getType());
+        question.applyCreate(request);
         question.setArticle(article);
-
         return questionRepository.save(question);
     }
 
@@ -57,12 +55,10 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Question updateQuestion(UUID id, UpdateQuestionRequest request) {
-        MultipleChoiceQuestion question = (MultipleChoiceQuestion) questionRepository.findById(id)
+        Question question = (MultipleChoiceQuestion) questionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
-        question.setText(request.getText());
-        question.setOptions(request.getOptions());
-        question.setCorrectAnswer(request.getCorrectAnswer());
+        question.applyUpdate(request);
 
         return questionRepository.save(question);
     }
