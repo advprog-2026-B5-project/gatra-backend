@@ -3,7 +3,9 @@ package id.ac.ui.cs.advprog.gatra.service;
 import id.ac.ui.cs.advprog.gatra.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.DailyMission;
+import id.ac.ui.cs.advprog.gatra.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,11 +26,12 @@ public class DailyMissionServiceImpl implements DailyMissionService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .targetCount(request.getTargetCount())
-                .actionType(request.getActionType())
-                .isActive(request.isActive())
+                .rewardPoints(request.getRewardPoints())
+                .actionType(ActionType.valueOf(request.getActionType()))
+                .status(MissionStatus.valueOf(request.getStatus()))
                 .build();
-        mission = missionRepository.save(mission);
-        return mapToResponse(mission);
+
+        return mapToResponse(missionRepository.save(mission));
     }
 
     @Override
@@ -53,11 +56,11 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         mission.setTitle(request.getTitle());
         mission.setDescription(request.getDescription());
         mission.setTargetCount(request.getTargetCount());
-        mission.setActionType(request.getActionType());
-        mission.setActive(request.isActive());
+        mission.setRewardPoints(request.getRewardPoints());
+        mission.setActionType(ActionType.valueOf(request.getActionType()));
+        mission.setStatus(MissionStatus.valueOf(request.getStatus()));
 
-        mission = missionRepository.save(mission);
-        return mapToResponse(mission);
+        return mapToResponse(missionRepository.save(mission));
     }
 
     @Override
@@ -73,10 +76,9 @@ public class DailyMissionServiceImpl implements DailyMissionService {
                 .title(mission.getTitle())
                 .description(mission.getDescription())
                 .targetCount(mission.getTargetCount())
-                .actionType(mission.getActionType())
-                .isActive(mission.isActive())
+                .rewardPoints(mission.getRewardPoints())
+                .actionType(mission.getActionType().name())
+                .status(mission.getStatus().name())
                 .build();
     }
-
-
 }

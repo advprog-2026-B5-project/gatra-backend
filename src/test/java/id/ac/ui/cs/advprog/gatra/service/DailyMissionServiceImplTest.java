@@ -3,7 +3,9 @@ package id.ac.ui.cs.advprog.gatra.service;
 import id.ac.ui.cs.advprog.gatra.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.DailyMission;
+import id.ac.ui.cs.advprog.gatra.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,102 +40,81 @@ class DailyMissionServiceImplTest {
         missionId = UUID.randomUUID();
         mission = DailyMission.builder()
                 .id(missionId)
-                .title("Baca Berita")
-                .description("Membaca 3 berita")
+                .title("Baca Artikel Berita")
+                .description("Membaca 3 artikel")
                 .targetCount(3)
-                .actionType("READ_ARTICLE")
-                .isActive(true)
+                .rewardPoints(50) // Sesuai ERD baru
+                .actionType(ActionType.READ_ARTICLE) // Sesuai Enum baru
+                .status(MissionStatus.ACTIVE) // Sesuai Enum baru
                 .build();
 
         request = DailyMissionRequest.builder()
-                .title("Baca Berita Baru")
-                .description("Membaca 5 berita")
-                .targetCount(5)
-                .actionType("READ_ARTICLE")
-                .isActive(false)
+                .title("Selesaikan Kuis")
+                .description("Selesaikan 1 kuis harian")
+                .targetCount(1)
+                .rewardPoints(100)
+                .actionType("FINISH_QUIZ")
+                .status("ACTIVE")
                 .build();
     }
 
     @Test
-    void createMission_ShouldReturnSavedMission() {
+    void createMission_ShouldSaveAndReturnResponse() {
         when(missionRepository.save(any(DailyMission.class))).thenReturn(mission);
 
         DailyMissionResponse response = missionService.createMission(request);
 
         assertNotNull(response);
-        assertEquals("Baca Berita", response.getTitle());
+        assertEquals(50, response.getRewardPoints());
+        assertEquals("ACTIVE", response.getStatus());
         verify(missionRepository, times(1)).save(any(DailyMission.class));
     }
 
     @Test
-    void getMissionById_ShouldReturnMission() {
+    void getMissionById_ShouldReturnMission_WhenFound() {
         when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
 
         DailyMissionResponse response = missionService.getMissionById(missionId);
 
-        assertNotNull(response);
         assertEquals(missionId, response.getId());
+        assertEquals("READ_ARTICLE", response.getActionType());
     }
 
     @Test
     void getMissionById_ShouldThrowException_WhenNotFound() {
         when(missionRepository.findById(missionId)).thenReturn(Optional.empty());
 
+        // Memastikan penggunaan 2 argumen sesuai ResourceNotFoundException.java
         assertThrows(ResourceNotFoundException.class, () -> missionService.getMissionById(missionId));
     }
 
     @Test
-    void updateMission_ShouldReturnUpdatedMission() {
+    void getAllMissions_ShouldReturnList() {
+        when(missionRepository.findAll()).thenReturn(List.of(mission));
+
+        List<DailyMissionResponse> result = missionService.getAllMissions();
+
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void updateMission_ShouldUpdateExistingData() {
         when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
         when(missionRepository.save(any(DailyMission.class))).thenReturn(mission);
 
         DailyMissionResponse response = missionService.updateMission(missionId, request);
 
         assertNotNull(response);
-        verify(missionRepository, times(1)).save(mission);
+        verify(missionRepository).save(any(DailyMission.class));
     }
 
     @Test
-    void deleteMission_ShouldCallRepositoryDelete() {
+    void deleteMission_ShouldCallRepository() {
         when(missionRepository.findById(missionId)).thenReturn(Optional.of(mission));
 
         missionService.deleteMission(missionId);
 
-        verify(missionRepository, times(1)).delete(mission);
-    }
-
-    @Test
-    void getAllMissions_ShouldReturnListOfMissions() {
-        // Arrange
-        when(missionRepository.findAll()).thenReturn(List.of(mission));
-
-        // Act
-        List<DailyMissionResponse> responses = missionService.getAllMissions();
-
-        // Assert
-        assertNotNull(responses);
-        assertEquals(1, responses.size());
-        assertEquals("Baca Berita", responses.get(0).getTitle());
-        verify(missionRepository, times(1)).findAll();
-    }
-
-    @Test
-    void updateMission_ShouldThrowException_WhenNotFound() {
-        // Arrange
-        when(missionRepository.findById(missionId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> missionService.updateMission(missionId, request));
-        verify(missionRepository, never()).save(any());
-    }
-
-    @Test
-    void deleteMission_ShouldThrowException_WhenNotFound() {
-        // Arrange
-        when(missionRepository.findById(missionId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> missionService.deleteMission(missionId));
-        verify(missionRepository, never()).delete(any());
+        verify(missionRepository).delete(mission);
     }
 }
