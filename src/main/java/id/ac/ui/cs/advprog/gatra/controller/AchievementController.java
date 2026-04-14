@@ -2,10 +2,15 @@ package id.ac.ui.cs.advprog.gatra.controller;
 
 import id.ac.ui.cs.advprog.gatra.dto.AchievementRequest;
 import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
+import id.ac.ui.cs.advprog.gatra.model.UserAchievement;
+import id.ac.ui.cs.advprog.gatra.repository.UserAchievementRepository;
 import id.ac.ui.cs.advprog.gatra.service.AchievementService;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +22,7 @@ import java.util.UUID;
 public class AchievementController {
 
     private final AchievementService achievementService;
+    private final UserAchievementRepository userAchievementRepository;
 
     @GetMapping
     public ResponseEntity<List<AchievementResponse>> getAllAchievements() {
@@ -45,5 +51,17 @@ public class AchievementController {
     public ResponseEntity<Void> deleteAchievement(@PathVariable UUID id) {
         achievementService.deleteAchievement(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<AchievementResponse>> getMyAchievements(java.security.Principal principal) {
+        return ResponseEntity.ok(achievementService.getMyAchievements(principal.getName()));
+    }
+
+    @GetMapping("/me/displayed")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<AchievementResponse>> getDisplayedAchievements(java.security.Principal principal) {
+        return ResponseEntity.ok(achievementService.getDisplayedAchievements(principal.getName()));
     }
 }

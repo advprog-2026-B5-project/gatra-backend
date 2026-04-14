@@ -12,4 +12,6 @@ public interface AchievementService {
     AchievementResponse createAchievement(AchievementRequest request);
     AchievementResponse updateAchievement(UUID id, AchievementRequest request);
     void deleteAchievement(UUID id);
+    List<AchievementResponse> getMyAchievements(String username);
+    List<AchievementResponse> getDisplayedAchievements(String username);
 }

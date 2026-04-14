@@ -14,4 +14,6 @@ public class AchievementResponse {
     private Integer milestoneThreshold;
     private String description;
     private String badgeUrl;
+    private String unlockedAt;
+    private boolean isDisplayed;
 }

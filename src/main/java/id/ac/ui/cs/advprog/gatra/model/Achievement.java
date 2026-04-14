@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -32,4 +34,7 @@ public class Achievement {
 
     @Column(name = "badge_url")
     private String badgeUrl;
+
+    @OneToMany(mappedBy = "achievement", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserAchievement> userAchievements = new HashSet<>();
 }
