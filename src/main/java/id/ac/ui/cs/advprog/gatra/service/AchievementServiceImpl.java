@@ -8,6 +8,9 @@ import id.ac.ui.cs.advprog.gatra.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserAchievementRepository;
+import id.ac.ui.cs.advprog.gatra.service.strategy.DisplayAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.service.strategy.HideAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.service.strategy.ShowAchievementStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +23,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AchievementServiceImpl implements AchievementService {
 
+    private static final int MAX_DISPLAYED_ACHIEVEMENTS = 3;
+
     private final AchievementRepository achievementRepository;
     private final UserAchievementRepository userAchievementRepository;
     private final AchievementMapper achievementMapper;
+
+    private final ShowAchievementStrategy showStrategy;
+    private final HideAchievementStrategy hideStrategy;
 
     @Override
     public List<AchievementResponse> getAllAchievements() {
@@ -39,19 +47,8 @@ public class AchievementServiceImpl implements AchievementService {
     @Override
     @Transactional
     public AchievementResponse createAchievement(AchievementRequest request) {
-        if (achievementRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException(
-                    "Achievement dengan nama '" + request.getName() + "' sudah ada");
-        }
-
-        Achievement achievement = Achievement.builder()
-                .name(request.getName())
-                .category(request.getCategory())
-                .milestoneThreshold(request.getMilestoneThreshold())
-                .description(request.getDescription())
-                .badgeUrl(request.getBadgeUrl())
-                .build();
-
+        validateAchievementNameUnique(request.getName());
+        Achievement achievement = buildAchievement(request);
         return achievementMapper.toResponse(achievementRepository.save(achievement));
     }
 
@@ -59,19 +56,8 @@ public class AchievementServiceImpl implements AchievementService {
     @Transactional
     public AchievementResponse updateAchievement(UUID id, AchievementRequest request) {
         Achievement achievement = findAchievementOrThrow(id);
-
-        if (!achievement.getName().equals(request.getName())
-                && achievementRepository.existsByName(request.getName())) {
-            throw new IllegalArgumentException(
-                    "Achievement dengan nama '" + request.getName() + "' sudah ada");
-        }
-
-        achievement.setName(request.getName());
-        achievement.setCategory(request.getCategory());
-        achievement.setMilestoneThreshold(request.getMilestoneThreshold());
-        achievement.setDescription(request.getDescription());
-        achievement.setBadgeUrl(request.getBadgeUrl());
-
+        validateAchievementNameUniqueForUpdate(achievement, request.getName());
+        applyUpdates(achievement, request);
         return achievementMapper.toResponse(achievementRepository.save(achievement));
     }
 
@@ -89,29 +75,56 @@ public class AchievementServiceImpl implements AchievementService {
 
     @Override
     public List<AchievementResponse> getMyAchievements(String username) {
-        List<UserAchievement> relations = userAchievementRepository.findByUserUsername(username);
-
-        return relations.stream()
-                .map(relation -> {
-                    AchievementResponse response = achievementMapper.toResponse(relation.getAchievement());
-                    response.setUnlockedAt(relation.getUnlockedAt().toString());
-                    response.setDisplayed(relation.isDisplayed());
-                    return response;
-                })
+        return userAchievementRepository.findByUserUsername(username).stream()
+                .map(achievementMapper::toResponseFromUserAchievement)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<AchievementResponse> getDisplayedAchievements(String username) {
-        return userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username)
-                .stream()
-                .map(rel -> {
-                    AchievementResponse res = achievementMapper.toResponse(rel.getAchievement());
-                    res.setDisplayed(true);
-                    return res;
-                })
-                // Batasi maksimal 3 agar dropdown tidak kepanjangan
-                .limit(3)
+        return userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username).stream()
+                .map(achievementMapper::toResponseFromUserAchievement)
+                .limit(MAX_DISPLAYED_ACHIEVEMENTS)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public void toggleDisplayAchievement(String username, UUID achievementId, boolean displayed) {
+        UserAchievement userAchievement = findUserAchievementOrThrow(username, achievementId);
+
+        DisplayAchievementStrategy strategy = displayed ? showStrategy : hideStrategy;
+
+        strategy.execute(userAchievement, userAchievementRepository);
+    }
+
+    private UserAchievement findUserAchievementOrThrow(String username, UUID achievementId) {
+        return userAchievementRepository
+                .findByUserUsernameAndAchievementId(username, achievementId)
+                .orElseThrow(() -> new ResourceNotFoundException("UserAchievement", achievementId));
+    }
+
+    private void validateAchievementNameUnique(String name) {
+        if (achievementRepository.existsByName(name)) {
+            throw new IllegalArgumentException("Achievement dengan nama '" + name + "' sudah ada");
+        }
+    }
+
+    private void validateAchievementNameUniqueForUpdate(Achievement existing, String newName) {
+        if (!existing.getName().equals(newName) && achievementRepository.existsByName(newName)) {
+            throw new IllegalArgumentException("Achievement dengan nama '" + newName + "' sudah ada");
+        }
+    }
+
+    private Achievement buildAchievement(AchievementRequest request) {
+        return achievementMapper.toEntity(request);
+    }
+
+    private void applyUpdates(Achievement achievement, AchievementRequest request) {
+        achievementMapper.updateEntity(achievement, request);
+    }
+
+
+
+
 }
