@@ -24,7 +24,8 @@ public class Achievement {
     @Column(nullable = false, unique = true)
     private String name;
 
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private ActionType category;
 
     @Column(name = "milestone_threshold", nullable = false)
     private Integer milestoneThreshold;
