@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.controller;
 
 import id.ac.ui.cs.advprog.gatra.dto.AchievementRequest;
 import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.service.AchievementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class AchievementControllerTest {
 
     private static final String ACHIEVEMENT_NAME = "tes";
     private static final String UPDATED_NAME = "Baca Buku";
-    private static final String CATEGORY = "article";
+    private static final ActionType CATEGORY = ActionType.READ_ARTICLE;
     private static final Integer MILESTONE = 10;
     private static final String DESCRIPTION = "Baca 10 artikel";
     private static final String BADGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm9d2Z1IVPte9tDEJnCkPChtLHbTo8NdZZBg&s";
@@ -54,7 +55,7 @@ class AchievementControllerTest {
         response = AchievementResponse.builder()
                 .id(achievementId)
                 .name(ACHIEVEMENT_NAME)
-                .category(CATEGORY)
+                .category(CATEGORY.name())
                 .milestoneThreshold(MILESTONE)
                 .description(DESCRIPTION)
                 .badgeUrl(BADGE_URL)
@@ -116,7 +117,7 @@ class AchievementControllerTest {
         AchievementResponse updatedResponse = AchievementResponse.builder()
                 .id(achievementId)
                 .name(UPDATED_NAME)
-                .category(CATEGORY)
+                .category(CATEGORY.name())
                 .milestoneThreshold(50)
                 .description("Baca 50 artikel")
                 .badgeUrl(BADGE_URL)

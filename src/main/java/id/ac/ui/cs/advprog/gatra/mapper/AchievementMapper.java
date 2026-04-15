@@ -11,7 +11,7 @@ public class AchievementMapper {
         return AchievementResponse.builder()
                 .id(achievement.getId())
                 .name(achievement.getName())
-                .category(achievement.getCategory())
+                .category(achievement.getCategory() != null ? achievement.getCategory().name() : null)
                 .milestoneThreshold(achievement.getMilestoneThreshold())
                 .description(achievement.getDescription())
                 .badgeUrl(achievement.getBadgeUrl())

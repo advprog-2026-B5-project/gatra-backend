@@ -5,6 +5,7 @@ import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserAchievementRepository;
@@ -28,7 +29,7 @@ class AchievementServiceImplTest {
 
     private static final String ACHIEVEMENT_NAME = "tes";
     private static final String UPDATED_NAME = "Baca Buku";
-    private static final String CATEGORY = "article";
+    private static final ActionType CATEGORY = ActionType.READ_ARTICLE;
     private static final Integer MILESTONE = 10;
     private static final Integer UPDATED_MILESTONE = 50;
     private static final String DESCRIPTION = "Baca 10 artikel";
@@ -69,7 +70,7 @@ class AchievementServiceImplTest {
         response = AchievementResponse.builder()
                 .id(achievementId)
                 .name(ACHIEVEMENT_NAME)
-                .category(CATEGORY)
+                .category(CATEGORY.name())
                 .milestoneThreshold(MILESTONE)
                 .description(DESCRIPTION)
                 .badgeUrl(BADGE_URL)
@@ -154,7 +155,7 @@ class AchievementServiceImplTest {
         AchievementResponse updatedResponse = AchievementResponse.builder()
                 .id(achievementId)
                 .name(UPDATED_NAME)
-                .category(CATEGORY)
+                .category(CATEGORY.name())
                 .milestoneThreshold(UPDATED_MILESTONE)
                 .description("Baca 50 artikel")
                 .badgeUrl(BADGE_URL)
