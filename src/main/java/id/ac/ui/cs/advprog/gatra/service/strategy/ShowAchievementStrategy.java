@@ -9,9 +9,10 @@ public class ShowAchievementStrategy implements DisplayAchievementStrategy {
 
     @Override
     public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
-        long currentCount = repository.countByUserUsernameAndIsDisplayedTrue(
+        long currentCount = repository.countShownAchievements(
                 userAchievement.getUser().getUsername()
         );
+
         if (currentCount >= MAX_DISPLAYED) {
             throw new IllegalStateException(
                     "Maksimal " + MAX_DISPLAYED + " achievement yang bisa ditampilkan di profil"
