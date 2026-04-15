@@ -2,7 +2,8 @@ package id.ac.ui.cs.advprog.gatra.quiz.dto;
 
 public class PassingScoreRequest {
 
-    private Integer passingScore;
+    //default
+    private Integer passingScore=50;
 
     public Integer getPassingScore() {
         return passingScore;
