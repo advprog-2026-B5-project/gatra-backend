@@ -14,4 +14,5 @@ public interface AchievementService {
     void deleteAchievement(UUID id);
     List<AchievementResponse> getMyAchievements(String username);
     List<AchievementResponse> getDisplayedAchievements(String username);
+    void toggleDisplayAchievement(String username, UUID achievementId, boolean displayed);
 }
