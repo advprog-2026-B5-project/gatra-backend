@@ -11,5 +11,5 @@ public interface UserAchievementRepository extends JpaRepository<UserAchievement
     List<UserAchievement> findByUserUsername(String username);
     List<UserAchievement> findByUserUsernameAndIsDisplayedTrue(String username);
     Optional<UserAchievement> findByUserUsernameAndAchievementId(String username, UUID achievementId);
-    long countShownAchievements(String username);
+    long countByUserUsernameAndIsDisplayedTrue(String username);
 }

@@ -11,7 +11,7 @@ public class ShowAchievementStrategy implements DisplayAchievementStrategy {
 
     @Override
     public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
-        long currentCount = repository.countShownAchievements(
+        long currentCount = repository.countByUserUsernameAndIsDisplayedTrue(
                 userAchievement.getUser().getUsername()
         );
 

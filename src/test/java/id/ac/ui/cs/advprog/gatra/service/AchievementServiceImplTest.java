@@ -70,7 +70,7 @@ class AchievementServiceImplTest {
         response = AchievementResponse.builder()
                 .id(achievementId)
                 .name(ACHIEVEMENT_NAME)
-                .category(CATEGORY.name())
+                .category(CATEGORY)
                 .milestoneThreshold(MILESTONE)
                 .description(DESCRIPTION)
                 .badgeUrl(BADGE_URL)
@@ -123,6 +123,7 @@ class AchievementServiceImplTest {
     @Test
     void createAchievement_whenValid_shouldReturnCreatedAchievement() {
         when(achievementRepository.existsByName(ACHIEVEMENT_NAME)).thenReturn(false);
+        when(achievementMapper.toEntity(request)).thenReturn(achievement);
         when(achievementRepository.save(any(Achievement.class))).thenReturn(achievement);
         when(achievementMapper.toResponse(achievement)).thenReturn(response);
 
@@ -155,7 +156,7 @@ class AchievementServiceImplTest {
         AchievementResponse updatedResponse = AchievementResponse.builder()
                 .id(achievementId)
                 .name(UPDATED_NAME)
-                .category(CATEGORY.name())
+                .category(CATEGORY)
                 .milestoneThreshold(UPDATED_MILESTONE)
                 .description("Baca 50 artikel")
                 .badgeUrl(BADGE_URL)
@@ -163,6 +164,7 @@ class AchievementServiceImplTest {
 
         when(achievementRepository.findById(achievementId)).thenReturn(Optional.of(achievement));
         when(achievementRepository.existsByName(UPDATED_NAME)).thenReturn(false);
+        doNothing().when(achievementMapper).updateEntity(any(),any());
         when(achievementRepository.save(any(Achievement.class))).thenReturn(achievement);
         when(achievementMapper.toResponse(achievement)).thenReturn(updatedResponse);
 
@@ -176,6 +178,7 @@ class AchievementServiceImplTest {
     @Test
     void updateAchievement_whenSameName_shouldNotCheckUniqueness() {
         when(achievementRepository.findById(achievementId)).thenReturn(Optional.of(achievement));
+        doNothing().when(achievementMapper).updateEntity(any(), any());
         when(achievementRepository.save(any(Achievement.class))).thenReturn(achievement);
         when(achievementMapper.toResponse(achievement)).thenReturn(response);
 
@@ -245,7 +248,7 @@ class AchievementServiceImplTest {
         AchievementResponse response = AchievementResponse.builder().name("Master Kuis").build();
 
         when(userAchievementRepository.findByUserUsername(username)).thenReturn(List.of(relation));
-        when(achievementMapper.toResponse(ach)).thenReturn(response);
+        when(achievementMapper.toResponseFromUserAchievement(relation)).thenReturn(response);
 
         // Act
         List<AchievementResponse> result = achievementService.getMyAchievements(username);
@@ -269,7 +272,13 @@ class AchievementServiceImplTest {
         when(userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username))
                 .thenReturn(List.of(rel1, rel2, rel3, rel4));
 
-        when(achievementMapper.toResponse(any())).thenReturn(response);
+        AchievementResponse displayedResponse = AchievementResponse.builder()
+                .name("Test")
+                .isDisplayed(true)
+                .build();
+
+        when(achievementMapper.toResponseFromUserAchievement(any()))
+                .thenReturn(displayedResponse);
 
         // Act: Memanggil fungsi untuk Dropdown Navbar
         List<AchievementResponse> result = achievementService.getDisplayedAchievements(username);
