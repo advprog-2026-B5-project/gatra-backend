@@ -8,7 +8,9 @@ import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -25,14 +27,18 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private final UserRepository userRepository;
     private final StudentProfileRepository studentProfileRepository;
 
+    // AMBIL URL FRONTEND DARI APPLICATION.PROPERTIES
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Override
+    @Transactional
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         // 1. Ambil data dari Google
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
 
-        // FIX: Tambahkan pengecekan null untuk menghilangkan warning kuning
         if (email == null) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Email tidak ditemukan dari Google");
             return;
@@ -59,9 +65,11 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             return newUser;
         });
 
-        // 3. Generate JWT Token dan Redirect (tetap sama)
+        // 3. Generate JWT Token dan Redirect ke URL dinamis
         String token = jwtUtil.generateToken(user);
-        String frontendRedirectUrl = "http://localhost:5173/oauth2/redirect?token=" + token;
+
+        // MENGGUNAKAN VARIABEL FRONTEND URL
+        String frontendRedirectUrl = frontendUrl + "/oauth2/redirect?token=" + token;
         getRedirectStrategy().sendRedirect(request, response, frontendRedirectUrl);
     }
 }
