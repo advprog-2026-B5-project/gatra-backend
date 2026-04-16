@@ -206,7 +206,7 @@ class ArticleServiceImplTest {
 
         assertDoesNotThrow(() -> articleService.deleteArticle(articleId, "admin"));
 
-        verify(articleRepository, times(1)).deleteById(articleId);
+        verify(articleRepository, times(1)).save(article); // ganti deleteById → save
     }
 
     @Test
@@ -216,6 +216,6 @@ class ArticleServiceImplTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> articleService.deleteArticle(articleId, "admin"));
 
-        verify(articleRepository, never()).deleteById(any());
+        verify(articleRepository, never()).save(any()); // ganti deleteById → save
     }
 }
