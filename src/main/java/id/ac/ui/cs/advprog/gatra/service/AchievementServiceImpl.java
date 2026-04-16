@@ -48,7 +48,7 @@ public class AchievementServiceImpl implements AchievementService {
     @Transactional
     public AchievementResponse createAchievement(AchievementRequest request) {
         validateAchievementNameUnique(request.getName());
-        Achievement achievement = buildAchievement(request);
+        Achievement achievement = achievementMapper.toEntity(request);
         return achievementMapper.toResponse(achievementRepository.save(achievement));
     }
 
@@ -57,7 +57,7 @@ public class AchievementServiceImpl implements AchievementService {
     public AchievementResponse updateAchievement(UUID id, AchievementRequest request) {
         Achievement achievement = findAchievementOrThrow(id);
         validateAchievementNameUniqueForUpdate(achievement, request.getName());
-        applyUpdates(achievement, request);
+        achievementMapper.updateEntity(achievement, request);
         return achievementMapper.toResponse(achievementRepository.save(achievement));
     }
 
@@ -115,16 +115,4 @@ public class AchievementServiceImpl implements AchievementService {
             throw new IllegalArgumentException("Achievement dengan nama '" + newName + "' sudah ada");
         }
     }
-
-    private Achievement buildAchievement(AchievementRequest request) {
-        return achievementMapper.toEntity(request);
-    }
-
-    private void applyUpdates(Achievement achievement, AchievementRequest request) {
-        achievementMapper.updateEntity(achievement, request);
-    }
-
-
-
-
 }
