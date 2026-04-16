@@ -11,4 +11,5 @@ public class MilestoneResponse {
     private String actionType;
     private Integer newTotalCount;
     private List<AchievementResponse> newlyUnlockedAchievements;
+    private List<MissionProgressResponse> completedMissions;
 }

@@ -77,7 +77,8 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         if (passed) {
             MilestoneResponse milestoneResponse = milestoneService.recordAction(
                     request.getUserId(), ActionType.FINISH_QUIZ);
-            missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
+            var completedMissions = missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
+            milestoneResponse.setCompletedMissions(completedMissions);
             response.setMilestoneResponse(milestoneResponse);
         }
 

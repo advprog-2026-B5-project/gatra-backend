@@ -35,23 +35,10 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getAllArticles());
     }
 
-//    @GetMapping("/{id}")
-//    public ResponseEntity<ArticleResponse> getArticleById(@PathVariable UUID id) {
-//        return ResponseEntity.ok(articleService.getArticleById(id));
-//    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ArticleResponse> getArticleById(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        String username = (userDetails != null) ? userDetails.getUsername() : null;
-        
-        ArticleResponse article = articleService.getArticleDetail(id, username);
-
-        return ResponseEntity.ok(article);
-    }
-
+   @GetMapping("/{id}")
+   public ResponseEntity<ArticleResponse> getArticleById(@PathVariable UUID id) {
+       return ResponseEntity.ok(articleService.getArticleById(id));
+   }
 
     @PostMapping
     public ResponseEntity<ArticleResponse> createArticle(
@@ -83,7 +70,9 @@ public class ArticleController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new ResourceNotFoundException("User", userDetails.getUsername()));
 
+        var completedMissions = missionProgressService.incrementProgress(user.getId(), "READ_ARTICLE");
         MilestoneResponse response = milestoneService.recordAction(user.getId(), ActionType.READ_ARTICLE);
+        response.setCompletedMissions(completedMissions);
         return ResponseEntity.ok(response);
     }
 }

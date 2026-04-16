@@ -8,6 +8,7 @@ import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.service.ArticleService;
 import id.ac.ui.cs.advprog.gatra.service.MilestoneService;
+import id.ac.ui.cs.advprog.gatra.service.MissionProgressService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,7 @@ class ArticleControllerTest {
 
     @Mock private ArticleService articleService;
     @Mock private MilestoneService milestoneService;
+    @Mock private MissionProgressService missionProgressService;
     @Mock private UserRepository userRepository;
     @Mock private UserDetails userDetails;
 
@@ -94,14 +96,13 @@ class ArticleControllerTest {
 
     @Test
     void getArticleById_whenFound_shouldReturnOk() {
-        when(userDetails.getUsername()).thenReturn("user");
-        when(articleService.getArticleDetail(articleId, "user")).thenReturn(response);
+        when(articleService.getArticleById(articleId)).thenReturn(response);
 
-        ResponseEntity<ArticleResponse> result = articleController.getArticleById(articleId, userDetails);
+        ResponseEntity<ArticleResponse> result = articleController.getArticleById(articleId);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(response, result.getBody());
-        verify(articleService, times(1)).getArticleDetail(articleId, "user");
+        verify(articleService, times(1)).getArticleById(articleId);
     }
 
     @Test
@@ -163,6 +164,7 @@ class ArticleControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("READ_ARTICLE", result.getBody().getActionType());
         assertEquals(1, result.getBody().getNewTotalCount());
+        verify(missionProgressService).incrementProgress(userId, "READ_ARTICLE");
         verify(milestoneService).recordAction(userId, ActionType.READ_ARTICLE);
     }
 }
