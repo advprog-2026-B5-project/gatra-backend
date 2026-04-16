@@ -4,8 +4,10 @@ import id.ac.ui.cs.advprog.gatra.dto.ArticleRequest;
 import id.ac.ui.cs.advprog.gatra.dto.ArticleResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.mapper.ArticleMapper;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.Article;
 import id.ac.ui.cs.advprog.gatra.model.Category;
+import id.ac.ui.cs.advprog.gatra.model.Role;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.repository.CategoryRepository;
@@ -26,6 +28,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ArticleMapper articleMapper;
+    private final MissionProgressService missionProgressService;
+    private final MilestoneService milestoneService;
 
     @Override
     public List<ArticleResponse> getAllArticles() {
@@ -88,5 +92,20 @@ public class ArticleServiceImpl implements ArticleService {
     private User findUserOrThrow(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", username));
+    }
+
+    public ArticleResponse getArticleDetail(UUID id, String username) {
+        ArticleResponse article = getArticleById(id);
+
+        if (username != null) {
+            userRepository.findByUsername(username).ifPresent(user -> {
+                if (Role.ROLE_STUDENT.equals(user.getRole())) {
+                    missionProgressService.incrementProgress(user.getId(), "READ_ARTICLE");
+                    milestoneService.recordAction(user.getId(), ActionType.READ_ARTICLE);
+                }
+            });
+        }
+
+        return article;
     }
 }

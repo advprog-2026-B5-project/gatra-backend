@@ -1,11 +1,15 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
 
+import id.ac.ui.cs.advprog.gatra.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.Article;
 import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.*;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.*;
+import id.ac.ui.cs.advprog.gatra.service.MilestoneService;
+import id.ac.ui.cs.advprog.gatra.service.MissionProgressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,8 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     private final QuizAttemptRepository attemptRepository;
     private final QuestionRepository questionRepository;
     private final ArticleRepository articleRepository;
+    private final MilestoneService milestoneService;
+    private final MissionProgressService missionProgressService;
 
     @Override
     @Transactional
@@ -66,7 +72,16 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
 
         attemptRepository.save(attempt);
 
-        return new QuizResultResponse(score, passingScore, passed, quizAnswers);
+        QuizResultResponse response = new QuizResultResponse(score, passingScore, passed, quizAnswers);
+
+        if (passed) {
+            MilestoneResponse milestoneResponse = milestoneService.recordAction(
+                    request.getUserId(), ActionType.FINISH_QUIZ);
+            missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
+            response.setMilestoneResponse(milestoneResponse);
+        }
+
+        return response;
     }
 
     @Override
