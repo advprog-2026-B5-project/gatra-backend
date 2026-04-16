@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.DailyMission;
 import id.ac.ui.cs.advprog.gatra.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -68,6 +69,34 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         DailyMission mission = missionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("DailyMission", id));
         missionRepository.delete(mission);
+    }
+
+    @Override
+    public List<DailyMissionResponse> getActiveMissions() {
+        return missionRepository.findByStatus(MissionStatus.ACTIVE).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void rotateMissions() {
+        List<DailyMission> allMissions = missionRepository.findAll();
+
+        // Reset semua misi menjadi INACTIVE
+        allMissions.forEach(m -> m.setStatus(MissionStatus.INACTIVE));
+
+        // Acak urutan misi
+        java.util.Collections.shuffle(allMissions);
+
+        // Pilih maksimal 3 misi teratas untuk diaktifkan
+        int countToActivate = Math.min(3, allMissions.size());
+        for (int i = 0; i < countToActivate; i++) {
+            allMissions.get(i).setStatus(MissionStatus.ACTIVE);
+        }
+
+        // Simpan perubahan ke database
+        missionRepository.saveAll(allMissions);
     }
 
     private DailyMissionResponse mapToResponse(DailyMission mission) {
