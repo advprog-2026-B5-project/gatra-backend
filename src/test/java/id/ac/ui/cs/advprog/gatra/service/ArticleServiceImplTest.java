@@ -204,7 +204,7 @@ class ArticleServiceImplTest {
     void deleteArticle_whenFound_shouldDelete() {
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
 
-        assertDoesNotThrow(() -> articleService.deleteArticle(articleId));
+        assertDoesNotThrow(() -> articleService.deleteArticle(articleId, "admin"));
 
         verify(articleRepository, times(1)).deleteById(articleId);
     }
@@ -214,7 +214,7 @@ class ArticleServiceImplTest {
         when(articleRepository.findById(articleId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> articleService.deleteArticle(articleId));
+                () -> articleService.deleteArticle(articleId, "admin"));
 
         verify(articleRepository, never()).deleteById(any());
     }
