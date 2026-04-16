@@ -46,15 +46,19 @@ class QuizServiceTest {
                 UUID.randomUUID()
         );
 
-        Question savedQuestion = mock(Question.class);
+        Question mockQuestion = mock(Question.class);
 
         when(articleRepository.findById(any())).thenReturn(Optional.of(mockArticle));
-        when(questionRepository.save(any())).thenReturn(savedQuestion);
+
+        when(questionFactory.create(any())).thenReturn(mockQuestion);
+
+        when(questionRepository.save(any())).thenReturn(mockQuestion);
 
         Question result = quizService.createQuestion(request);
 
         assertNotNull(result);
         verify(questionRepository, times(1)).save(any());
+
     }
 
     @Test
