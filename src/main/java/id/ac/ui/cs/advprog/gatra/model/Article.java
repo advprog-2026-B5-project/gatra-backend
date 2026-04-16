@@ -31,4 +31,6 @@ public class Article {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    private Integer passingScore;
+
 }
