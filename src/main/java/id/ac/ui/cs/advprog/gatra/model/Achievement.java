@@ -12,37 +12,32 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "achievements")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
-
+public class Achievement {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private String username;
-
-    @Column(unique = true)
-    private String email;
-
-    @Column(unique = true)
-    private String phoneNumber;
-
-    private String password;
-
-    private String displayName;
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private ActionType category;
 
-    @Enumerated(EnumType.STRING)
-    private AuthProvider provider;
+    @Column(name = "milestone_threshold", nullable = false)
+    private Integer milestoneThreshold;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(name = "badge_url")
+    private String badgeUrl;
+
+    @OneToMany(mappedBy = "achievement", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<UserAchievement> userAchievements = new HashSet<>();
 }
