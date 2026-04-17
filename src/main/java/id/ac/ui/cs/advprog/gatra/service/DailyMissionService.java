@@ -10,4 +10,6 @@ public interface DailyMissionService {
     DailyMissionResponse getMissionById(UUID id);
     DailyMissionResponse updateMission(UUID id, DailyMissionRequest request);
     void deleteMission(UUID id);
+    List<DailyMissionResponse> getActiveMissions();
+    void rotateMissions();
 }
