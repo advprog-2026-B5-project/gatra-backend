@@ -5,10 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "articles")
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -31,4 +33,18 @@ public class Article {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by")
+    private String deletedBy;
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
+    public void softDelete(String adminUsername) {
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = adminUsername;
+    }
 }

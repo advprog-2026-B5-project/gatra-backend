@@ -44,8 +44,13 @@ public class ArticleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable UUID id) {
-        articleService.deleteArticle(id);
+    public ResponseEntity<Void> deleteArticle(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        articleService.deleteArticle(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/deleted")
+    public ResponseEntity<List<ArticleResponse>> getDeletedArticles() {
+        return ResponseEntity.ok(articleService.getDeletedArticles());
     }
 }

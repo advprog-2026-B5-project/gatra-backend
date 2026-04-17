@@ -30,13 +30,19 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public List<ArticleResponse> getAllArticles() {
         return articleRepository.findAll().stream()
+                .filter(article -> !article.isDeleted())
                 .map(articleMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ArticleResponse getArticleById(UUID id) {
-        return articleMapper.toResponse(findArticleOrThrow(id));
+        Article article = articleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Article", id));
+        if (article.isDeleted()) {
+            throw new ResourceNotFoundException("Article", id);
+        }
+        return articleMapper.toResponse(article);
+
     }
 
     @Override
@@ -70,9 +76,22 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
-    public void deleteArticle(UUID id) {
-        findArticleOrThrow(id);
-        articleRepository.deleteById(id);
+    public void deleteArticle(UUID id, String adminUsername) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Article", id));
+        if (article.isDeleted()) {
+            throw new IllegalStateException("Artikel sudah dihapus pada " + article.getDeletedAt());
+        }
+        article.softDelete(adminUsername);
+        articleRepository.save(article);
+    }
+
+    @Override
+    public List<ArticleResponse> getDeletedArticles() {
+        return articleRepository.findAll().stream()
+                .filter(Article::isDeleted)
+                .map(articleMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     private Article findArticleOrThrow(UUID id) {
