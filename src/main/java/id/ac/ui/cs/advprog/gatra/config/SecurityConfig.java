@@ -41,6 +41,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+
+                        .requestMatchers("/api/achievements/me", "/api/achievements/me/**").authenticated()
+                        .requestMatchers("/api/missions/**").authenticated()
                         .requestMatchers("/api/achievements/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -50,8 +53,8 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                .successHandler(oAuth2LoginSuccessHandler) // Gunakan Penyambut buatan kita
-        );
+                        .successHandler(oAuth2LoginSuccessHandler) // Gunakan Penyambut buatan kita
+                );
 
         return http.build();
     }

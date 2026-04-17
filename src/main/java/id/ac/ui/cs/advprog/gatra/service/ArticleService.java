@@ -10,5 +10,6 @@ public interface ArticleService {
     ArticleResponse getArticleById(UUID id);
     ArticleResponse createArticle(ArticleRequest request, String username);
     ArticleResponse updateArticle(UUID id, ArticleRequest request);
-    void deleteArticle(UUID id);
+    void deleteArticle(UUID id, String adminUsername);
+    List<ArticleResponse> getDeletedArticles();
 }
