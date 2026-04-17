@@ -134,12 +134,18 @@ class ArticleControllerTest {
 
     @Test
     void deleteArticle_whenFound_shouldReturnNoContent() {
-        doNothing().when(articleService).deleteArticle(articleId);
+        when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME);
 
-        ResponseEntity<Void> result = articleController.deleteArticle(articleId);
+        doNothing().when(articleService)
+                .deleteArticle(eq(articleId), eq(DUMMY_USERNAME));
+
+        ResponseEntity<Void> result =
+                articleController.deleteArticle(articleId, userDetails);
 
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
-        verify(articleService, times(1)).deleteArticle(articleId);
+
+        verify(articleService, times(1))
+                .deleteArticle(eq(articleId), eq(DUMMY_USERNAME));
     }
 
     @Test

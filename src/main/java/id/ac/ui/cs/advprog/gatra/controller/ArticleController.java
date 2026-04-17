@@ -55,11 +55,11 @@ public class ArticleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteArticle(@PathVariable UUID id) {
-        articleService.deleteArticle(id);
+    public ResponseEntity<Void> deleteArticle(@PathVariable UUID id, @AuthenticationPrincipal UserDetails userDetails) {
+        articleService.deleteArticle(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
-
+  
     @PostMapping("/{id}/read")
     public ResponseEntity<MilestoneResponse> markArticleAsRead(
             @PathVariable UUID id,
@@ -75,4 +75,11 @@ public class ArticleController {
         response.setCompletedMissions(completedMissions);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/deleted")
+    public ResponseEntity<List<ArticleResponse>> getDeletedArticles() {
+        return ResponseEntity.ok(articleService.getDeletedArticles());
+    }
+
 }
+
