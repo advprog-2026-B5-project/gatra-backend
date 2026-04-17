@@ -2,7 +2,13 @@ package id.ac.ui.cs.advprog.gatra.controller;
 
 import id.ac.ui.cs.advprog.gatra.dto.ArticleRequest;
 import id.ac.ui.cs.advprog.gatra.dto.ArticleResponse;
+import id.ac.ui.cs.advprog.gatra.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.model.ActionType;
+import id.ac.ui.cs.advprog.gatra.model.User;
+import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.service.ArticleService;
+import id.ac.ui.cs.advprog.gatra.service.MilestoneService;
+import id.ac.ui.cs.advprog.gatra.service.MissionProgressService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -30,6 +37,9 @@ class ArticleControllerTest {
     private static final String DUMMY_CATEGORY_NAME = "Technology";
 
     @Mock private ArticleService articleService;
+    @Mock private MilestoneService milestoneService;
+    @Mock private MissionProgressService missionProgressService;
+    @Mock private UserRepository userRepository;
     @Mock private UserDetails userDetails;
 
     @InjectMocks
@@ -137,4 +147,31 @@ class ArticleControllerTest {
         verify(articleService, times(1))
                 .deleteArticle(eq(articleId), eq(DUMMY_USERNAME));
     }
+
+    @Test
+    void markArticleAsRead_shouldTriggerMilestoneDetection() {
+        UUID userId = UUID.randomUUID();
+        User user = User.builder().id(userId).username(DUMMY_USERNAME).build();
+
+        MilestoneResponse milestoneResponse = MilestoneResponse.builder()
+                .actionType("READ_ARTICLE")
+                .newTotalCount(1)
+                .newlyUnlockedAchievements(List.of())
+                .build();
+
+        when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME);
+        when(articleService.getArticleById(articleId)).thenReturn(response);
+        when(userRepository.findByUsername(DUMMY_USERNAME)).thenReturn(Optional.of(user));
+        when(milestoneService.recordAction(userId, ActionType.READ_ARTICLE))
+                .thenReturn(milestoneResponse);
+
+        ResponseEntity<MilestoneResponse> result = articleController.markArticleAsRead(articleId, userDetails);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("READ_ARTICLE", result.getBody().getActionType());
+        assertEquals(1, result.getBody().getNewTotalCount());
+        verify(missionProgressService).incrementProgress(userId, "READ_ARTICLE");
+        verify(milestoneService).recordAction(userId, ActionType.READ_ARTICLE);
+    }
 }
+

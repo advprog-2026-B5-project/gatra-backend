@@ -7,6 +7,6 @@ import java.util.UUID;
 
 public interface MissionProgressService {
     List<MissionProgressResponse> getActiveMissionsWithProgress(UUID userId);
-    void incrementProgress(UUID userId, String actionType);
+    List<MissionProgressResponse> incrementProgress(UUID userId, String actionType);
     MissionProgressResponse claimReward(UUID userId, UUID missionId);
 }
