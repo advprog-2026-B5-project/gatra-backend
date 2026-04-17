@@ -33,6 +33,8 @@ public class Article {
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
 
+    private Integer passingScore;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
