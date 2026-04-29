@@ -4,15 +4,22 @@ import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 
+import id.ac.ui.cs.advprog.gatra.model.User;
+import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class ClanServiceImpl implements ClanService {
     private final ClanRepository clanRepository;
     private final ClanMembershipRepository membershipRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -40,11 +47,15 @@ public class ClanServiceImpl implements ClanService {
     }
 
     private ClanResponse toResponse(Clan clan){
+        long memberCount = membershipRepository
+                .countByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED);
+
         return ClanResponse.builder()
                 .id(clan.getId())
                 .name(clan.getName())
                 .description(clan.getDescription())
                 .createdAt(clan.getCreatedAt())
+                .memberCount((int) memberCount)
                 .build();
     }
 
@@ -67,6 +78,76 @@ public class ClanServiceImpl implements ClanService {
                 .orElseThrow(() -> new RuntimeException("Hanya ketua clan yang dapat menghapus clan"));
 
         clanRepository.delete(clan);
+    }
+
+    @Override
+    public List<ClanResponse> getAllClans() {
+        return clanRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public ClanResponse getMyClan(String userId) {
+        Optional<ClanMembership> approved = membershipRepository
+                .findByUserIdAndStatus(userId, MembershipStatus.APPROVED);
+
+        if (approved.isPresent()) {
+            ClanMembership m = approved.get();
+            Clan clan = m.getClan();
+
+            List<MembershipResponse> members = membershipRepository
+                    .findByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED)
+                    .stream().map(this::toMembershipResponse).toList();
+
+            List<MembershipResponse> pending = new ArrayList<>();
+            if (m.getRole() == ClanRole.LEADER) {
+                pending = membershipRepository
+                        .findByClanIdAndStatus(clan.getId(), MembershipStatus.PENDING)
+                        .stream().map(this::toMembershipResponse).toList();
+            }
+
+            return ClanResponse.builder()
+                    .id(clan.getId())
+                    .name(clan.getName())
+                    .description(clan.getDescription())
+                    .createdAt(clan.getCreatedAt())
+                    .myRole(m.getRole().name())
+                    .membershipStatus(m.getStatus().name())
+                    .memberCount(members.size())
+                    .members(members)
+                    .pendingApplications(pending)
+                    .build();
+        }
+
+        Optional<ClanMembership> pending = membershipRepository
+                .findByUserIdAndStatus(userId, MembershipStatus.PENDING);
+        if (pending.isPresent()) {
+            ClanMembership mp = pending.get();
+            return ClanResponse.builder()
+                    .id(mp.getClan().getId())
+                    .name(mp.getClan().getName())
+                    .membershipStatus(MembershipStatus.PENDING.name())
+                    .build();
+        }
+
+        return null;
+    }
+
+    private MembershipResponse toMembershipResponse(ClanMembership m) {
+        String displayName = userRepository.findByStringId(m.getUserId())
+                .map(User::getDisplayName)
+                .orElse("Unknown");
+
+        return MembershipResponse.builder()
+                .id(m.getId())
+                .clanId(m.getClan().getId())
+                .userId(m.getUserId())
+                .displayName(displayName)
+                .role(m.getRole())
+                .status(m.getStatus())
+                .build();
     }
 
 

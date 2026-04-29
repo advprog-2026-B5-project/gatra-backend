@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/achievements/me", "/api/achievements/me/**").authenticated()
                         .requestMatchers("/api/missions/**").authenticated()
                         .requestMatchers("/api/achievements/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/clans").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/clans/{id}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

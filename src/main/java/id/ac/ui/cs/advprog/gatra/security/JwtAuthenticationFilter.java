@@ -66,6 +66,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Simpan status "Sudah Login" ke dalam konteks Spring
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                String userId = jwtUtil.extractUserId(jwt);
+                request.setAttribute("userId", userId);
             }
         }
         filterChain.doFilter(request, response);

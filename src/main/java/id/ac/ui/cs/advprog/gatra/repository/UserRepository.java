@@ -25,4 +25,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     // [Custom Query] Untuk fitur login fleksibel (Email ATAU No HP)
     @Query("SELECT u FROM User u WHERE u.email = :identifier OR u.phoneNumber = :identifier OR u.username = :identifier")
     Optional<User> findByUserIdentifier(String identifier);
+
+    @Query("SELECT u FROM User u WHERE CAST(u.id AS string) = :id")
+    Optional<User> findByStringId(String id);
 }
