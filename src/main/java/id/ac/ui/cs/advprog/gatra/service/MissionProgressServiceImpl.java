@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
+import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.dto.MissionProgressResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.mapper.MissionProgressMapper;
@@ -11,6 +13,8 @@ import id.ac.ui.cs.advprog.gatra.model.UserMissionProgress;
 import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserMissionProgressRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
+import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
     private final UserMissionProgressRepository progressRepository;
     private final UserRepository userRepository;
     private final MissionProgressMapper progressMapper;
+    private final ClanMembershipRepository clanMembershipRepository;
+    private final PointRecordingService pointRecordingService;
 
     @Override
     public List<MissionProgressResponse> getActiveMissionsWithProgress(UUID userId) {
@@ -100,6 +106,20 @@ public class MissionProgressServiceImpl implements MissionProgressService {
 
         progress.setIsClaimed(true);
         progressRepository.save(progress);
+
+        clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), MembershipStatus.APPROVED)
+                .ifPresent(membership -> {
+                    double rewardPoints = mission.getRewardPoints() != null ? mission.getRewardPoints() : 0.0;
+                    if (rewardPoints > 0) {
+                        pointRecordingService.recordPoints(
+                                userId.toString(),
+                                membership.getClan().getId(),
+                                rewardPoints,
+                                PointActivityType.DAILY_MISSION_COMPLETED,
+                                missionId.toString()
+                        );
+                    }
+                });
 
         return progressMapper.toResponse(mission, progress);
     }

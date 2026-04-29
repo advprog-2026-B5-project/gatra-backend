@@ -1,5 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
+import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.dto.MilestoneResponse;
 import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.Article;
@@ -8,6 +10,8 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.*;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.*;
+import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
+import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import id.ac.ui.cs.advprog.gatra.service.MilestoneService;
 import id.ac.ui.cs.advprog.gatra.service.MissionProgressService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +29,8 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     private final ArticleRepository articleRepository;
     private final MilestoneService milestoneService;
     private final MissionProgressService missionProgressService;
+    private final ClanMembershipRepository clanMembershipRepository;
+    private final PointRecordingService pointRecordingService;
 
     @Override
     @Transactional
@@ -80,6 +86,17 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
             var completedMissions = missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
             milestoneResponse.setCompletedMissions(completedMissions);
             response.setMilestoneResponse(milestoneResponse);
+
+            clanMembershipRepository.findFirstByUserIdAndStatus(request.getUserId().toString(), MembershipStatus.APPROVED)
+                    .ifPresent(membership -> {
+                        pointRecordingService.recordPoints(
+                                request.getUserId().toString(),
+                                membership.getClan().getId(),
+                                100.0, // Passing gets 100 points.
+                                PointActivityType.QUIZ_PASSED,
+                                request.getArticleId().toString()
+                        );
+                    });
         }
 
         return response;
