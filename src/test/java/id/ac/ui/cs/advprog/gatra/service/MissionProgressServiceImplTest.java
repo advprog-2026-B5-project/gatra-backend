@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.dto.MissionProgressResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.mapper.MissionProgressMapper;
@@ -7,6 +8,7 @@ import id.ac.ui.cs.advprog.gatra.model.*;
 import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserMissionProgressRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +31,8 @@ class MissionProgressServiceImplTest {
     @Mock private UserMissionProgressRepository progressRepository;
     @Mock private UserRepository userRepository;
     @Mock private MissionProgressMapper progressMapper;
+    @Mock private ClanMembershipRepository clanMembershipRepository;
+    @Mock private PointRecordingService pointRecordingService;
 
     @InjectMocks
     private MissionProgressServiceImpl missionProgressService;

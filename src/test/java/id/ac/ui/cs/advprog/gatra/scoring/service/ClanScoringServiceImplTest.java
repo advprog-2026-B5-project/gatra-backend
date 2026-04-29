@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ClanScoringServiceTest {
+class ClanScoringServiceImplTest {
 
     @Mock
     private ClanMembershipRepository clanMembershipRepository;
@@ -26,7 +26,7 @@ class ClanScoringServiceTest {
     @Mock
     private PointHistoryRepository pointHistoryRepository;
 
-    private ClanScoringService clanScoringService;
+    private ClanScoringServiceImpl clanScoringService;
 
     @BeforeEach
     void setUp() {
@@ -37,7 +37,7 @@ class ClanScoringServiceTest {
                 new GoldScoringStrategy(),
                 new DiamondScoringStrategy()
         );
-        clanScoringService = new ClanScoringService(strategies, clanMembershipRepository, pointHistoryRepository);
+        clanScoringService = new ClanScoringServiceImpl(strategies, clanMembershipRepository, pointHistoryRepository);
     }
 
     // ==========================================
