@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.clan.state;
 
-import id.ac.ui.cs.advprog.gatra.model.ClanMembership;
+import id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership;
 
 public class ApprovedState implements MembershipState {
 

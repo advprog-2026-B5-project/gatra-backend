@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.clan.state;
 
 
-import id.ac.ui.cs.advprog.gatra.model.ClanMembership;
+import id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership;
 import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
 
 public class PendingState implements MembershipState {
