@@ -8,4 +8,5 @@ public interface ClanMembershipService {
     MembershipResponse decideMembership(String clanId, String applicantId,
                                         MembershipDecisionRequest request, String leaderId);
     List<MembershipResponse> getPendingApplications(String clanId, String leaderId);
+    void leaveClan(String clanId, String userId);
 }

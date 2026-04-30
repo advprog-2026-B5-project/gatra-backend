@@ -81,8 +81,16 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
                 .stream().map(this::toResponse).toList();
     }
 
+    @Override
+    @Transactional
+    public void leaveClan(String clanId, String userId) {
+        ClanMembership membership = membershipRepository.findByClanIdAndUserId(clanId, userId)
+                .orElseThrow(() -> new RuntimeException("Kamu bukan anggota clan ini."));
 
+        if (membership.getRole().equals(ClanRole.LEADER)) {
+            throw new RuntimeException("Ketua tidak bisa keluar clan.");
+        }
 
-
-
+        membershipRepository.delete(membership);
+    }
 }
