@@ -53,7 +53,13 @@ public class ClanController {
         return ResponseEntity.ok(clanService.getAllClans());
     }
 
-
-
+    @DeleteMapping("/{clanId}/members/{targetUserId}")
+    public ResponseEntity<Void> kickMember(
+            @PathVariable String clanId,
+            @PathVariable String targetUserId,
+            @RequestAttribute("userId") String leaderId) {
+        clanService.kickMember(clanId, targetUserId, leaderId);
+        return ResponseEntity.noContent().build();
+    }
 
 }

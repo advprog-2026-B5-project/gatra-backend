@@ -4,6 +4,7 @@ import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 
+import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -150,5 +151,23 @@ public class ClanServiceImpl implements ClanService {
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void kickMember(String clanId, String targetUserId, String leaderId) {
+        Clan clan = clanRepository.findById(clanId)
+                .orElseThrow(() -> new RuntimeException("Clan dengan id " + clanId + " tidak ditemukan"));
 
+        membershipRepository.findByClanIdAndUserId(clanId, leaderId)
+                .filter(m -> m.getRole() == ClanRole.LEADER)
+                .orElseThrow(() -> new RuntimeException("Hanya ketua clan yang dapat menghapus clan"));
+
+        if (leaderId.equals(targetUserId)) {
+            throw new RuntimeException("Ketua tidak bisa mengeluarkan diri sendiri melalui fitur kick.");
+        }
+
+        ClanMembership targetMembership = membershipRepository.findByClanIdAndUserId(clanId, targetUserId)
+                .orElseThrow(() -> new RuntimeException("Target user bukan anggota clan ini."));
+
+        membershipRepository.delete(targetMembership);
+    }
 }

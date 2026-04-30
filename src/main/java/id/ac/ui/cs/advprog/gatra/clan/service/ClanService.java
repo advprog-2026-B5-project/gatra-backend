@@ -10,4 +10,5 @@ public interface ClanService {
     void deleteClan(String clanId, String userId);
     ClanResponse getMyClan(String userId);
     List<ClanResponse> getAllClans();
+    void kickMember(String clanId, String targetUserId, String leaderId);
 }
