@@ -80,6 +80,8 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
 
         QuizResultResponse response = new QuizResultResponse(score, passingScore, passed, quizAnswers);
 
+        response.setPointsEarned(0.0);
+
         if (passed) {
             MilestoneResponse milestoneResponse = milestoneService.recordAction(
                     request.getUserId(), ActionType.FINISH_QUIZ);
@@ -87,16 +89,19 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
             milestoneResponse.setCompletedMissions(completedMissions);
             response.setMilestoneResponse(milestoneResponse);
 
-            clanMembershipRepository.findFirstByUserIdAndStatus(request.getUserId().toString(), MembershipStatus.APPROVED)
-                    .ifPresent(membership -> {
-                        pointRecordingService.recordPoints(
-                                request.getUserId().toString(),
-                                membership.getClan().getId(),
-                                100.0, // Passing gets 100 points.
-                                PointActivityType.QUIZ_PASSED,
-                                request.getArticleId().toString()
-                        );
-                    });
+            // Extract Optional check to set pointsEarned safely
+            var membershipOpt = clanMembershipRepository.findFirstByUserIdAndStatus(request.getUserId().toString(), MembershipStatus.APPROVED);
+
+            if (membershipOpt.isPresent()) {
+                pointRecordingService.recordPoints(
+                        request.getUserId().toString(),
+                        membershipOpt.get().getClan().getId(),
+                        100.0, // Passing gets 100 points.
+                        PointActivityType.QUIZ_PASSED,
+                        request.getArticleId().toString()
+                );
+                response.setPointsEarned(100.0);
+            }
         }
 
         return response;
