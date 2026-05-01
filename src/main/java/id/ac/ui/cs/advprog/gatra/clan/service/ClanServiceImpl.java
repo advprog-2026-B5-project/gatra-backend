@@ -7,6 +7,8 @@ import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class ClanServiceImpl implements ClanService {
     private final ClanRepository clanRepository;
     private final ClanMembershipRepository membershipRepository;
     private final UserRepository userRepository;
+    private final ClanScoringService clanScoringService;
 
     @Override
     @Transactional
@@ -51,12 +54,20 @@ public class ClanServiceImpl implements ClanService {
         long memberCount = membershipRepository
                 .countByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED);
 
+        // TODO: Replace this hardcoded tier with actual tier fetched from the Leaderboard module
+        String currentClanTier = "BRONZE";
+
+        // Calculate the score using the existing scoring strategies (Bronze, Silver, Gold, etc.)
+        double finalScore = clanScoringService.calculateClanScore(clan.getId(), currentClanTier, List.of());
+
         return ClanResponse.builder()
                 .id(clan.getId())
                 .name(clan.getName())
                 .description(clan.getDescription())
                 .createdAt(clan.getCreatedAt())
                 .memberCount((int) memberCount)
+                .score(finalScore)
+                .tier(currentClanTier)
                 .build();
     }
 
@@ -98,6 +109,10 @@ public class ClanServiceImpl implements ClanService {
             ClanMembership m = approved.get();
             Clan clan = m.getClan();
 
+            // TODO: Replace this hardcoded tier with actual tier fetched from the Leaderboard module
+            String currentClanTier = "BRONZE";
+            double finalScore = clanScoringService.calculateClanScore(clan.getId(), currentClanTier, List.of());
+
             List<MembershipResponse> members = membershipRepository
                     .findByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED)
                     .stream().map(this::toMembershipResponse).toList();
@@ -119,6 +134,8 @@ public class ClanServiceImpl implements ClanService {
                     .memberCount(members.size())
                     .members(members)
                     .pendingApplications(pending)
+                    .score(finalScore)
+                    .tier(currentClanTier)
                     .build();
         }
 

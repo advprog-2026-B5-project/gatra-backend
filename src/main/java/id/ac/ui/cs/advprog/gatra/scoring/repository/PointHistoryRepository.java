@@ -12,15 +12,9 @@ import java.util.UUID;
 @Repository
 public interface PointHistoryRepository extends JpaRepository<PointHistory, UUID> {
 
-    /**
-     * Calculates the all-time total base points for a clan.
-     */
     @Query("SELECT COALESCE(SUM(p.points), 0.0) FROM PointHistory p WHERE p.clanId = :clanId")
     double sumPointsByClanId(@Param("clanId") String clanId);
 
-    /**
-     * Calculates points earned strictly within a specific date range (e.g., current season).
-     */
     @Query("SELECT COALESCE(SUM(p.points), 0.0) FROM PointHistory p " +
             "WHERE p.clanId = :clanId AND p.earnedAt >= :startDate AND p.earnedAt <= :endDate")
     double sumPointsByClanIdAndDateRange(
@@ -28,4 +22,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, UUID
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    @Query("SELECT COALESCE(SUM(p.points), 0.0) FROM PointHistory p WHERE p.userId = :userId")
+    double sumPointsByUserId(@Param("userId") String userId);
 }

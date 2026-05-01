@@ -2,9 +2,11 @@ package id.ac.ui.cs.advprog.gatra.service;
 
 import id.ac.ui.cs.advprog.gatra.dto.UserResponse;
 import id.ac.ui.cs.advprog.gatra.model.Role;
+import id.ac.ui.cs.advprog.gatra.model.StudentProfile;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +22,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final StudentProfileRepository studentProfileRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Override
     @Transactional
@@ -52,14 +55,23 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll().stream()
-                .map(user -> UserResponse.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .email(user.getEmail())
-                        .phoneNumber(user.getPhoneNumber())
-                        .displayName(user.getDisplayName())
-                        .role(user.getRole())
-                        .build())
+                .map(user -> {
+                    // Fetch profile for the league tier (if it exists)
+                    StudentProfile profile = studentProfileRepository.findById(user.getId()).orElse(null);
+                    // Fetch dynamic score from the point history ledger
+                    double totalUserScore = pointHistoryRepository.sumPointsByUserId(user.getId().toString());
+
+                    return UserResponse.builder()
+                            .id(user.getId())
+                            .username(user.getUsername())
+                            .email(user.getEmail())
+                            .phoneNumber(user.getPhoneNumber())
+                            .displayName(user.getDisplayName())
+                            .role(user.getRole())
+                            .totalScore(Math.round(totalUserScore))
+                            .currentLeagueTier(profile != null && profile.getCurrentLeagueTier() != null ? profile.getCurrentLeagueTier() : "Bronze")
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -67,6 +79,12 @@ public class UserServiceImpl implements UserService {
     public UserResponse getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+
+        // Fetch profile for the league tier (if it exists)
+        StudentProfile profile = studentProfileRepository.findById(id).orElse(null);
+        // Fetch dynamic score from the point history ledger
+        double totalUserScore = pointHistoryRepository.sumPointsByUserId(user.getId().toString());
+
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -74,6 +92,8 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .displayName(user.getDisplayName())
                 .role(user.getRole())
+                .totalScore(Math.round(totalUserScore))
+                .currentLeagueTier(profile != null && profile.getCurrentLeagueTier() != null ? profile.getCurrentLeagueTier() : "Bronze")
                 .build();
     }
 }

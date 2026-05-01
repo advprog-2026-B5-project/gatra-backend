@@ -47,7 +47,7 @@ class ClanScoringServiceImplTest {
     void testCalculateClanScore_BronzeTier_NoModifiers() {
         String clanId = "clan-bronze-1";
 
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(10);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(10L);
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(1500.0);
 
         double result = clanScoringService.calculateClanScore(clanId, "BRONZE", List.of());
@@ -63,7 +63,7 @@ class ClanScoringServiceImplTest {
     void testCalculateClanScore_SilverTier_WithBuff() {
         String clanId = "clan-silver-1";
 
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(10);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(10L);
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(1000.0);
 
         List<ScoreModifier> modifiers = List.of(
@@ -85,7 +85,7 @@ class ClanScoringServiceImplTest {
         String clanId = "clan-gold-under";
 
         // 5 members -> Quota = 5 * 200 = 1000 points.
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
         // Earned 800 (Below quota)
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(800.0);
 
@@ -100,7 +100,7 @@ class ClanScoringServiceImplTest {
         String clanId = "clan-gold-overdrive";
 
         // 5 members -> Quota = 5 * 200 = 1000 points.
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
         // Earned 1400 (400 points into Overdrive)
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(1400.0);
 
@@ -117,7 +117,7 @@ class ClanScoringServiceImplTest {
     void testCalculateClanScore_DiamondTier_WithStackingModifiers() {
         String clanId = "clan-diamond-1";
 
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(1000.0);
 
         // Stacking Modifiers: 1.2x (Buff) and 0.8x (Penalty)
@@ -139,7 +139,7 @@ class ClanScoringServiceImplTest {
         String clanId = "clan-diamond-empty";
 
         // Edge case: Prevent division by zero
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(0);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(0L);
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(500.0);
 
         double result = clanScoringService.calculateClanScore(clanId, "DIAMOND", List.of());
@@ -155,7 +155,7 @@ class ClanScoringServiceImplTest {
     void testCalculateClanScore_InvalidTier_ThrowsException() {
         String clanId = "clan-unknown";
 
-        when(clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5);
+        when(clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(500.0);
 
         // Assert that passing an unsupported tier name throws the proper exception

@@ -18,4 +18,7 @@ public class ClanResponse {
 
     private Integer memberCount;
     private List<MembershipResponse> members;
+
+    private Double score;
+    private String tier;
 }

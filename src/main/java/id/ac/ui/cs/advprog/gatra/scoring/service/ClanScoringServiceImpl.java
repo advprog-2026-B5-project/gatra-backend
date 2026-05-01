@@ -37,7 +37,7 @@ public class ClanScoringServiceImpl implements ClanScoringService {
     @Override
     public double calculateClanScore(String clanId, String tier, List<ScoreModifier> activeModifiers) {
         // Fetch only APPROVED members dynamically
-        int totalMembers = clanMembershipRepository.countByClan_IdAndStatus(clanId, MembershipStatus.APPROVED);
+        long totalMembers = clanMembershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED);
         double totalPoints = pointHistoryRepository.sumPointsByClanId(clanId);
 
         TierScoringStrategy strategy = scoringStrategies.get(tier.toUpperCase());
