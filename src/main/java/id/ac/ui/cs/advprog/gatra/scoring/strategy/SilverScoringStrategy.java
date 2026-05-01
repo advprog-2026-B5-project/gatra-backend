@@ -13,7 +13,7 @@ public class SilverScoringStrategy implements TierScoringStrategy {
     }
 
     @Override
-    public double calculateBaseScore(double totalPointsEarned, int totalMembers) {
+    public double calculateBaseScore(double totalPointsEarned, long totalMembers) {
         // Silver Tier logic: Base points + (50 points * number of active members)
         return totalPointsEarned + (totalMembers * SYNERGY_BONUS_PER_MEMBER);
     }

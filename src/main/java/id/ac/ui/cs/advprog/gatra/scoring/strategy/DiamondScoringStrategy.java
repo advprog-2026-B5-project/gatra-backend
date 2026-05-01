@@ -11,7 +11,7 @@ public class DiamondScoringStrategy implements TierScoringStrategy {
     }
 
     @Override
-    public double calculateBaseScore(double totalPointsEarned, int totalMembers) {
+    public double calculateBaseScore(double totalPointsEarned, long totalMembers) {
         // Prevent division by zero
         if (totalMembers <= 0) {
             return 0.0;

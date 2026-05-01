@@ -11,7 +11,7 @@ public class BronzeScoringStrategy implements TierScoringStrategy {
     }
 
     @Override
-    public double calculateBaseScore(double totalPointsEarned, int totalMembers) {
+    public double calculateBaseScore(double totalPointsEarned, long totalMembers) {
         // Bronze Tier logic: Simple summation of all points
         return totalPointsEarned;
     }
