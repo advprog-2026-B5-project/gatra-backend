@@ -40,4 +40,12 @@ public class ClanMembershipController {
         return ResponseEntity.ok(
                 membershipService.decideMembership(clanId, applicantId, request, leaderId));
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> leaveClan(
+            @PathVariable String clanId,
+            @RequestAttribute("userId") String userId) {
+        membershipService.leaveClan(clanId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

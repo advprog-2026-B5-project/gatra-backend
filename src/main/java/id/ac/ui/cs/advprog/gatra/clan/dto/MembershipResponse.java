@@ -10,6 +10,7 @@ public class MembershipResponse {
     private String id;
     private String clanId;
     private String userId;
+    private String displayName;
     private ClanRole role;
     private MembershipStatus status;
 }
