@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,42 +31,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 1. Ambil header Authorization
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
-        final String username;
+        String username = null;
 
-        // 2. Cek apakah header ada dan berawalan "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response); // Lanjut ke filter berikutnya (akan ditolak nanti jika butuh login)
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // 3. Ekstrak token (potong kata "Bearer " di depannya)
         jwt = authHeader.substring(7);
-        username = jwtUtil.extractUsername(jwt); // Ambil username dari dalam token
 
-        // 4. Jika token ada username-nya dan user belum di-autentikasi di konteks saat ini
+        // Wrap the extraction in a try-catch to handle expired tokens cleanly
+        try {
+            username = jwtUtil.extractUsername(jwt);
+        } catch (ExpiredJwtException e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token expired. Please log in again.");
+            return; // Stop the filter chain here
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Invalid token.");
+            return; // Stop the filter chain here
+        }
+
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            // Ambil data user dari database
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // Cek apakah tokennya valid sesuai data user
-            // Catatan: Karena JwtUtil kita memakai parameter model User, pastikan method ini disesuaikan
-            // atau ubah JwtUtil untuk menerima UserDetails (saya rekomendasikan ubah JwtUtil agar lebih standar)
             if (jwtUtil.isTokenValid(jwt, userDetails)) {
-
-                // Buat token autentikasi standar Spring Security
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         userDetails.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Simpan status "Sudah Login" ke dalam konteks Spring
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                String userId = jwtUtil.extractUserId(jwt);
+                request.setAttribute("userId", userId);
             }
         }
         filterChain.doFilter(request, response);
