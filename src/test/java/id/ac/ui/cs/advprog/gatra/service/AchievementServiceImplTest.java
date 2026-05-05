@@ -1,14 +1,15 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
-import id.ac.ui.cs.advprog.gatra.dto.AchievementRequest;
-import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementRequest;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.service.AchievementServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
-import id.ac.ui.cs.advprog.gatra.mapper.AchievementMapper;
-import id.ac.ui.cs.advprog.gatra.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
+import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.model.ActionType;
-import id.ac.ui.cs.advprog.gatra.model.UserAchievement;
-import id.ac.ui.cs.advprog.gatra.repository.AchievementRepository;
-import id.ac.ui.cs.advprog.gatra.repository.UserAchievementRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,9 +1,10 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.dto.AchievementRequest;
-import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.controller.AchievementController;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementRequest;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.gatra.model.ActionType;
-import id.ac.ui.cs.advprog.gatra.service.AchievementService;
+import id.ac.ui.cs.advprog.gatra.achievement.service.AchievementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

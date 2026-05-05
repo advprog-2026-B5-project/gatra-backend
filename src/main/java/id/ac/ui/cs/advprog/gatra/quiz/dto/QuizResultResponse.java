@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.quiz.dto;
 
-import id.ac.ui.cs.advprog.gatra.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.model.QuizAnswer;
 import java.util.List;
 
