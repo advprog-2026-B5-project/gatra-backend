@@ -1,11 +1,11 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.gatra.dto.DailyMissionRequest;
-import id.ac.ui.cs.advprog.gatra.dto.DailyMissionResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
-import id.ac.ui.cs.advprog.gatra.service.DailyMissionService;
+import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

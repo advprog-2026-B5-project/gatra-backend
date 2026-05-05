@@ -1,7 +1,8 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.dto.DailyMissionResponse;
-import id.ac.ui.cs.advprog.gatra.service.DailyMissionService;
+import id.ac.ui.cs.advprog.gatra.achievement.controller.StudentMissionController;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
 import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
