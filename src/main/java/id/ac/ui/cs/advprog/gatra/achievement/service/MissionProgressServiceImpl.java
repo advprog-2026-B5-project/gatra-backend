@@ -5,7 +5,7 @@ import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.MissionProgressMapper;
 import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
-import id.ac.ui.cs.advprog.gatra.model.MissionStatus;
+import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserMissionProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
