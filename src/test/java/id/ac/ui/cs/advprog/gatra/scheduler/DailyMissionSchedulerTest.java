@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.scheduler;
 
-import id.ac.ui.cs.advprog.gatra.service.DailyMissionService;
+import id.ac.ui.cs.advprog.gatra.achievement.scheduler.DailyMissionScheduler;
+import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -1,11 +1,14 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
-import id.ac.ui.cs.advprog.gatra.dto.MissionProgressResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
+import id.ac.ui.cs.advprog.gatra.achievement.model.UserMissionProgress;
+import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
-import id.ac.ui.cs.advprog.gatra.mapper.MissionProgressMapper;
+import id.ac.ui.cs.advprog.gatra.achievement.mapper.MissionProgressMapper;
 import id.ac.ui.cs.advprog.gatra.model.*;
-import id.ac.ui.cs.advprog.gatra.repository.DailyMissionRepository;
-import id.ac.ui.cs.advprog.gatra.repository.UserMissionProgressRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
