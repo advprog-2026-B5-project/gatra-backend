@@ -1,13 +1,17 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
-import id.ac.ui.cs.advprog.gatra.dto.AchievementResponse;
-import id.ac.ui.cs.advprog.gatra.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.StudentMilestoneProgress;
+import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
+import id.ac.ui.cs.advprog.gatra.achievement.service.MilestoneServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
-import id.ac.ui.cs.advprog.gatra.mapper.AchievementMapper;
+import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.model.*;
-import id.ac.ui.cs.advprog.gatra.repository.AchievementRepository;
-import id.ac.ui.cs.advprog.gatra.repository.StudentMilestoneProgressRepository;
-import id.ac.ui.cs.advprog.gatra.repository.UserAchievementRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.StudentMilestoneProgressRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +20,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
