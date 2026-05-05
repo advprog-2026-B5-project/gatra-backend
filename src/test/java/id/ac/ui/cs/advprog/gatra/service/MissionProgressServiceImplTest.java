@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
+import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserMissionProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;

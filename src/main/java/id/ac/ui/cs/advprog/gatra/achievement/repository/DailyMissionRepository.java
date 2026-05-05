@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.achievement.repository;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
-import id.ac.ui.cs.advprog.gatra.model.MissionStatus;
+import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

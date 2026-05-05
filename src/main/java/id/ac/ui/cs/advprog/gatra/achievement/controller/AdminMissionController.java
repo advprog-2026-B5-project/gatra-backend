@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.gatra.controller;
+package id.ac.ui.cs.advprog.gatra.achievement.controller;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
