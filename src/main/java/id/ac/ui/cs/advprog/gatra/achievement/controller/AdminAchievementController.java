@@ -13,29 +13,33 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/achievements")
+@RequestMapping("/api/admin/achievements")
 @RequiredArgsConstructor
-public class AchievementController {
+public class AdminAchievementController {
 
     private final AchievementService achievementService;
 
-    @GetMapping
-    public ResponseEntity<List<AchievementResponse>> getAllAchievements() {
-        return ResponseEntity.ok(achievementService.getAllAchievements());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<AchievementResponse> getAchievementById(@PathVariable UUID id) {
-        return ResponseEntity.ok(achievementService.getAchievementById(id));
-    }
-
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> createAchievement(
             @Valid @RequestBody AchievementRequest request) {
         return ResponseEntity.ok(achievementService.createAchievement(request));
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<AchievementResponse>> getAllAchievements() {
+        return ResponseEntity.ok(achievementService.getAllAchievements());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AchievementResponse> getAchievementById(@PathVariable UUID id) {
+        return ResponseEntity.ok(achievementService.getAchievementById(id));
+    }
+
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> updateAchievement(
             @PathVariable UUID id,
             @Valid @RequestBody AchievementRequest request) {
@@ -43,30 +47,9 @@ public class AchievementController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAchievement(@PathVariable UUID id) {
         achievementService.deleteAchievement(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/me")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<AchievementResponse>> getMyAchievements(java.security.Principal principal) {
-        return ResponseEntity.ok(achievementService.getMyAchievements(principal.getName()));
-    }
-
-    @GetMapping("/me/displayed")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<List<AchievementResponse>> getDisplayedAchievements(java.security.Principal principal) {
-        return ResponseEntity.ok(achievementService.getDisplayedAchievements(principal.getName()));
-    }
-
-    @PatchMapping("/{id}/display")
-    @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<Void> toggleDisplayAchievement(
-            @PathVariable UUID id, @RequestParam boolean displayed,
-            java.security.Principal principal)
-    {
-        achievementService.toggleDisplayAchievement(principal.getName(), id, displayed);
         return ResponseEntity.noContent().build();
     }
 }
