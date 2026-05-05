@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class MissionProgressServiceImpl implements MissionProgressService {
 
     @Override
     @Transactional
-    public void incrementProgress(UUID userId, String actionType) {
+    public List<MissionProgressResponse> incrementProgress(UUID userId, String actionType) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
 
@@ -54,6 +55,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
                 .stream()
                 .filter(m -> m.getActionType() == type)
                 .collect(Collectors.toList());
+
+        List<MissionProgressResponse> newlyCompleted = new ArrayList<>();
 
         for (DailyMission mission : matchingMissions) {
             UserMissionProgress progress = progressRepository
@@ -68,8 +71,14 @@ public class MissionProgressServiceImpl implements MissionProgressService {
             if (progress.getCurrentCount() < mission.getTargetCount()) {
                 progress.setCurrentCount(progress.getCurrentCount() + 1);
                 progressRepository.save(progress);
+
+                if (progress.getCurrentCount().equals(mission.getTargetCount())) {
+                    newlyCompleted.add(progressMapper.toResponse(mission, progress));
+                }
             }
         }
+
+        return newlyCompleted;
     }
 
     @Override

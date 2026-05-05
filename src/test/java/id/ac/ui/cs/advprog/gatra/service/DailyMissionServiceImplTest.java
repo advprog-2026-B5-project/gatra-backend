@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -116,5 +117,78 @@ class DailyMissionServiceImplTest {
         missionService.deleteMission(missionId);
 
         verify(missionRepository).delete(mission);
+    }
+
+    @Test
+    void getActiveMissions_ShouldReturnOnlyActiveMissions() {
+        // Arrange
+        DailyMission activeMission = DailyMission.builder()
+                .title("Misi 1")
+                .status(MissionStatus.ACTIVE)
+                .actionType(ActionType.READ_ARTICLE)
+                .build();
+
+        when(missionRepository.findByStatus(MissionStatus.ACTIVE))
+                .thenReturn(List.of(activeMission));
+
+        // Act
+        List<DailyMissionResponse> result = missionService.getActiveMissions();
+
+        // Assert
+        assertEquals(1, result.size());
+        assertEquals("Misi 1", result.get(0).getTitle());
+        verify(missionRepository, times(1)).findByStatus(MissionStatus.ACTIVE);
+    }
+
+    @Test
+    void rotateMissions_WhenMoreThanThree_ShouldActivateExactlyThree() {
+        // Arrange: Buat 5 misi di database
+        List<DailyMission> missions = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            missions.add(DailyMission.builder().title("Misi " + i).status(MissionStatus.ACTIVE).build());
+        }
+        when(missionRepository.findAll()).thenReturn(missions);
+
+        // Act
+        missionService.rotateMissions();
+
+        // Assert: Harus ada tepat 3 yang ACTIVE dan 2 yang INACTIVE
+        long activeCount = missions.stream().filter(m -> m.getStatus() == MissionStatus.ACTIVE).count();
+        long inactiveCount = missions.stream().filter(m -> m.getStatus() == MissionStatus.INACTIVE).count();
+
+        assertEquals(3, activeCount);
+        assertEquals(2, inactiveCount);
+        verify(missionRepository, times(1)).saveAll(missions);
+    }
+
+    @Test
+    void rotateMissions_WhenLessThanThree_ShouldActivateAll() {
+        // Arrange: Hanya ada 2 misi di database
+        List<DailyMission> missions = new ArrayList<>();
+        missions.add(DailyMission.builder().status(MissionStatus.INACTIVE).build());
+        missions.add(DailyMission.builder().status(MissionStatus.INACTIVE).build());
+
+        when(missionRepository.findAll()).thenReturn(missions);
+
+        // Act
+        missionService.rotateMissions();
+
+        // Assert: Keduanya harus menjadi ACTIVE
+        long activeCount = missions.stream().filter(m -> m.getStatus() == MissionStatus.ACTIVE).count();
+
+        assertEquals(2, activeCount);
+        verify(missionRepository, times(1)).saveAll(missions);
+    }
+
+    @Test
+    void rotateMissions_WhenEmpty_ShouldDoNothing() {
+        // Arrange
+        when(missionRepository.findAll()).thenReturn(new ArrayList<>());
+
+        // Act
+        missionService.rotateMissions();
+
+        // Assert: Tidak boleh ada error dan tetap memanggil saveAll dengan list kosong
+        verify(missionRepository, times(1)).saveAll(anyList());
     }
 }
