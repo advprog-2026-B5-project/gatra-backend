@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
 import id.ac.ui.cs.advprog.gatra.dto.UserResponse;
+import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.model.Role;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
@@ -75,5 +76,19 @@ public class UserServiceImpl implements UserService {
                 .displayName(user.getDisplayName())
                 .role(user.getRole())
                 .build();
+    }
+
+    @Override
+    public User getUserEntityById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+        return user;
+    }
+
+    @Override
+    public User getUserEntityByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new ResourceNotFoundException("User", username));
+        return user;
     }
 }
