@@ -1,10 +1,11 @@
 package id.ac.ui.cs.advprog.gatra.achievement.dto;
 
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
+
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 
 @Data
 @Builder

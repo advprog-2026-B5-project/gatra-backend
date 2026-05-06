@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.achievement.controller.AchievementController;
+import id.ac.ui.cs.advprog.gatra.achievement.controller.AdminAchievementController;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.service.AchievementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class AchievementControllerTest {
+class AdminAchievementControllerTest {
 
     private static final String ACHIEVEMENT_NAME = "tes";
     private static final String UPDATED_NAME = "Baca Buku";
@@ -36,7 +36,7 @@ class AchievementControllerTest {
     private AchievementService achievementService;
 
     @InjectMocks
-    private AchievementController achievementController;
+    private AdminAchievementController achievementController;
 
     private UUID achievementId;
     private AchievementRequest request;
