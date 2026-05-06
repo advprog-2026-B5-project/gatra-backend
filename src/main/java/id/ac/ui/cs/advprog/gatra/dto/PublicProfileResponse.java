@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.dto;
 
+import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
 import lombok.Builder;
 import lombok.Data;
 import java.util.List;

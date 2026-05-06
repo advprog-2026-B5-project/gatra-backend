@@ -1,12 +1,13 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import id.ac.ui.cs.advprog.gatra.achievement.controller.AdminMissionController;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
-import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,26 +50,28 @@ class AdminMissionControllerTest {
     private DailyMissionRequest request;
     private DailyMissionResponse response;
     private UUID missionId;
+    private final String BASE_URL = "/api/admin/missions";
 
     @BeforeEach
     void setUp() {
         missionId = UUID.randomUUID();
+        
         request = DailyMissionRequest.builder()
-                .title("Misi Kuis")
-                .description("Selesaikan kuis")
-                .targetCount(1)
-                .rewardPoints(100)
-                .actionType("FINISH_QUIZ")
+                .title("Misi Baca")
+                .description("Baca 2 artikel")
+                .targetCount(2)
+                .rewardPoints(50)
+                .actionType("READ_ARTICLE")
                 .status("ACTIVE")
                 .build();
 
         response = DailyMissionResponse.builder()
                 .id(missionId)
-                .title("Misi Kuis")
-                .description("Selesaikan kuis")
-                .targetCount(1)
-                .rewardPoints(100)
-                .actionType("FINISH_QUIZ")
+                .title("Misi Baca")
+                .description("Baca 2 artikel")
+                .targetCount(2)
+                .rewardPoints(50)
+                .actionType("READ_ARTICLE")
                 .status("ACTIVE")
                 .build();
     }
@@ -78,12 +81,12 @@ class AdminMissionControllerTest {
     void createMission_ShouldReturnCreated() throws Exception {
         when(dailyMissionService.createMission(any(DailyMissionRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post("/api/admin/daily-missions")
+        mockMvc.perform(post(BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.rewardPoints").value(100))
-                .andExpect(jsonPath("$.status").value("ACTIVE"));
+                .andExpect(jsonPath("$.id").value(missionId.toString()))
+                .andExpect(jsonPath("$.title").value("Misi Baca"));
     }
 
     @Test
@@ -91,9 +94,30 @@ class AdminMissionControllerTest {
     void getAllMissions_ShouldReturnList() throws Exception {
         when(dailyMissionService.getAllMissions()).thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/admin/daily-missions"))
+        mockMvc.perform(get(BASE_URL))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(missionId.toString()));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("Misi Baca"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getMissionById_ShouldReturnOk_WhenFound() throws Exception {
+        when(dailyMissionService.getMissionById(missionId)).thenReturn(response);
+
+        mockMvc.perform(get(BASE_URL + "/{id}", missionId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(missionId.toString()));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void getMissionById_ShouldReturnNotFound_WhenMissionDoesNotExist() throws Exception {
+        when(dailyMissionService.getMissionById(missionId))
+                .thenThrow(new ResourceNotFoundException("DailyMission", missionId));
+
+        mockMvc.perform(get(BASE_URL + "/{id}", missionId))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -101,46 +125,17 @@ class AdminMissionControllerTest {
     void updateMission_ShouldReturnOk() throws Exception {
         when(dailyMissionService.updateMission(eq(missionId), any(DailyMissionRequest.class))).thenReturn(response);
 
-        mockMvc.perform(put("/api/admin/daily-missions/{id}", missionId)
+        mockMvc.perform(put(BASE_URL + "/{id}", missionId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Misi Kuis"));
+                .andExpect(jsonPath("$.title").value("Misi Baca"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteMission_ShouldReturnNoContent() throws Exception {
-        mockMvc.perform(delete("/api/admin/daily-missions/{id}", missionId))
+        mockMvc.perform(delete(BASE_URL + "/{id}", missionId))
                 .andExpect(status().isNoContent());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void getMissionById_ShouldReturn200Ok_WhenMissionExists() throws Exception {
-        // Arrange: Mock service agar mengembalikan response DTO
-        when(dailyMissionService.getMissionById(missionId)).thenReturn(response);
-
-        // Act & Assert: Melakukan request GET dan verifikasi JSON
-        mockMvc.perform(get("/api/admin/daily-missions/{id}", missionId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(missionId.toString()))
-                .andExpect(jsonPath("$.title").value(response.getTitle()))
-                .andExpect(jsonPath("$.rewardPoints").value(response.getRewardPoints()))
-                .andExpect(jsonPath("$.status").value(response.getStatus()));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void getMissionById_ShouldReturn404NotFound_WhenMissionDoesNotExist() throws Exception {
-        // Arrange: Mock service agar melempar exception
-        when(dailyMissionService.getMissionById(missionId))
-                .thenThrow(new ResourceNotFoundException("DailyMission", missionId));
-
-        // Act & Assert: Pastikan status HTTP yang kembali adalah 404
-        mockMvc.perform(get("/api/admin/daily-missions/{id}", missionId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
     }
 }

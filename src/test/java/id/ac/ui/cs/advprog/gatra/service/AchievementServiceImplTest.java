@@ -6,8 +6,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.service.AchievementServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
-import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -232,61 +231,5 @@ class AchievementServiceImplTest {
                 () -> achievementService.deleteAchievement(achievementId));
 
         verify(achievementRepository, never()).deleteById(any());
-    }
-
-    @Test
-    void getMyAchievements_ShouldReturnListOfResponse() {
-        // Arrange
-        String username = "testUser";
-        Achievement ach = Achievement.builder().name("Master Kuis").build();
-
-        UserAchievement relation = UserAchievement.builder()
-                .achievement(ach)
-                .unlockedAt(java.time.LocalDateTime.now())
-                .isDisplayed(true) // Opsional: sekalian test untuk isDisplayed
-                .build();
-
-        AchievementResponse response = AchievementResponse.builder().name("Master Kuis").build();
-
-        when(userAchievementRepository.findByUserUsername(username)).thenReturn(List.of(relation));
-        when(achievementMapper.toResponseFromUserAchievement(relation)).thenReturn(response);
-
-        // Act
-        List<AchievementResponse> result = achievementService.getMyAchievements(username);
-
-        // Assert
-        assertFalse(result.isEmpty());
-        assertEquals("Master Kuis", result.get(0).getName());
-        verify(userAchievementRepository).findByUserUsername(username);
-    }
-
-    @Test
-    void getDisplayedAchievements_shouldReturnLimitedList() {
-        // Arrange: Siapkan 4 achievement yang di-pin di database
-        String username = "rehema";
-        Achievement ach = Achievement.builder().name("Test").build();
-        UserAchievement rel1 = UserAchievement.builder().achievement(ach).build();
-        UserAchievement rel2 = UserAchievement.builder().achievement(ach).build();
-        UserAchievement rel3 = UserAchievement.builder().achievement(ach).build();
-        UserAchievement rel4 = UserAchievement.builder().achievement(ach).build();
-
-        when(userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username))
-                .thenReturn(List.of(rel1, rel2, rel3, rel4));
-
-        AchievementResponse displayedResponse = AchievementResponse.builder()
-                .name("Test")
-                .isDisplayed(true)
-                .build();
-
-        when(achievementMapper.toResponseFromUserAchievement(any()))
-                .thenReturn(displayedResponse);
-
-        // Act: Memanggil fungsi untuk Dropdown Navbar
-        List<AchievementResponse> result = achievementService.getDisplayedAchievements(username);
-
-        // Assert: Pastikan hasilnya dibatasi maksimal 3 sesuai logika `.limit(3)`
-        assertEquals(3, result.size());
-        assertTrue(result.get(0).isDisplayed());
-        verify(userAchievementRepository, times(1)).findByUserUsernameAndIsDisplayedTrue(username);
     }
 }

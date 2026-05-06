@@ -10,4 +10,6 @@ public interface UserService {
     User updateUser(UUID userId, String newDisplayName, String newPhoneNumber);
     List<UserResponse> getAllUsers();
     UserResponse getUserById(UUID id);
+    User getUserEntityById(UUID id);
+    User getUserEntityByUsername(String username);
 }

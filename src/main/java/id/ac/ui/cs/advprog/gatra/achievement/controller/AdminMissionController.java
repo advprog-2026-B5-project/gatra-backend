@@ -13,38 +13,34 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin/daily-missions")
+@RequestMapping("/api/admin/missions")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminMissionController {
 
     private final DailyMissionService dailyMissionService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DailyMissionResponse> createMission(@RequestBody DailyMissionRequest request) {
         return new ResponseEntity<>(dailyMissionService.createMission(request), HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<DailyMissionResponse>> getAllMissions() {
         return ResponseEntity.ok(dailyMissionService.getAllMissions());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DailyMissionResponse> getMissionById(@PathVariable UUID id) {
         return ResponseEntity.ok(dailyMissionService.getMissionById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DailyMissionResponse> updateMission(@PathVariable UUID id, @RequestBody DailyMissionRequest request) {
         return ResponseEntity.ok(dailyMissionService.updateMission(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteMission(@PathVariable UUID id) {
         dailyMissionService.deleteMission(id);
         return ResponseEntity.noContent().build();
