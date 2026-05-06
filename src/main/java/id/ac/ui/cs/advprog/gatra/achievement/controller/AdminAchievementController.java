@@ -15,31 +15,28 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/admin/achievements")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminAchievementController {
 
     private final AchievementService achievementService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> createAchievement(
             @Valid @RequestBody AchievementRequest request) {
         return ResponseEntity.ok(achievementService.createAchievement(request));
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AchievementResponse>> getAllAchievements() {
         return ResponseEntity.ok(achievementService.getAllAchievements());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> getAchievementById(@PathVariable UUID id) {
         return ResponseEntity.ok(achievementService.getAchievementById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AchievementResponse> updateAchievement(
             @PathVariable UUID id,
             @Valid @RequestBody AchievementRequest request) {
@@ -47,7 +44,6 @@ public class AdminAchievementController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteAchievement(@PathVariable UUID id) {
         achievementService.deleteAchievement(id);
         return ResponseEntity.noContent().build();

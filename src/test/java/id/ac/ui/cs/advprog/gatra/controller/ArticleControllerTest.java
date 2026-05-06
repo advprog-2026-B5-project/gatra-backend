@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.gatra.controller;
 import id.ac.ui.cs.advprog.gatra.dto.ArticleRequest;
 import id.ac.ui.cs.advprog.gatra.dto.ArticleResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.service.ArticleService;

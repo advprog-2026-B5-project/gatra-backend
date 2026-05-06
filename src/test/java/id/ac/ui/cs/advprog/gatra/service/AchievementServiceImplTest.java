@@ -6,7 +6,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.service.AchievementServiceImpl;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
 import org.junit.jupiter.api.BeforeEach;

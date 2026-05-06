@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.achievement.model;
 
-import id.ac.ui.cs.advprog.gatra.model.ActionType;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
