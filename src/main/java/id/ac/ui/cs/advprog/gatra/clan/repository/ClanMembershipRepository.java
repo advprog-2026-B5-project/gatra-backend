@@ -13,4 +13,5 @@ public interface ClanMembershipRepository extends JpaRepository<ClanMembership, 
     Optional<ClanMembership> findByUserIdAndRole(String userId, ClanRole role);
     Optional<ClanMembership> findByUserIdAndStatus(String userId, MembershipStatus status);
     long countByClanIdAndStatus(String clanId, MembershipStatus status);
+    Optional<ClanMembership> findFirstByUserIdAndStatus(String userId, MembershipStatus status);
 }

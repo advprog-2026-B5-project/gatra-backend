@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
@@ -10,6 +11,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.mapper.MissionProgressMapper;
 import id.ac.ui.cs.advprog.gatra.model.*;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,8 @@ class MissionProgressServiceImplTest {
     @Mock private UserMissionProgressRepository progressRepository;
     @Mock private UserService userService;
     @Mock private MissionProgressMapper progressMapper;
+    @Mock private ClanMembershipRepository clanMembershipRepository;
+    @Mock private PointRecordingService pointRecordingService;
 
     @InjectMocks
     private MissionProgressServiceImpl missionProgressService;

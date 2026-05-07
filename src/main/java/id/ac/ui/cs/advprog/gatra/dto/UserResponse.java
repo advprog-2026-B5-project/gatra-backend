@@ -15,4 +15,6 @@ public class UserResponse {
     private String phoneNumber;
     private String displayName;
     private Role role;
+    private Long totalScore;
+    private String currentLeagueTier;
 }
