@@ -24,6 +24,10 @@ public class Clan {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Builder.Default
+    @Column(nullable = false)
+    private String tier = "BRONZE";
+
     @OneToMany(mappedBy = "clan", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ClanMembership> memberships;
 }
