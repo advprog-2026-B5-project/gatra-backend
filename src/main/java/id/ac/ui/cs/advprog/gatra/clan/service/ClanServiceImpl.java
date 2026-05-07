@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
 import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class ClanServiceImpl implements ClanService {
     private final ClanMembershipRepository membershipRepository;
     private final UserRepository userRepository;
     private final ClanScoringService clanScoringService;
+    private final BuffDebuffService buffDebuffService;
 
     @Override
     @Transactional
@@ -54,11 +56,12 @@ public class ClanServiceImpl implements ClanService {
         long memberCount = membershipRepository
                 .countByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED);
 
-        // TODO: Replace this hardcoded tier with actual tier fetched from the Leaderboard module
-        String currentClanTier = "BRONZE";
+        String currentClanTier = clan.getTier();
 
-        // Calculate the score using the existing scoring strategies (Bronze, Silver, Gold, etc.)
-        double finalScore = clanScoringService.calculateClanScore(clan.getId(), currentClanTier, List.of());
+        ScoreModifier modifier = buffDebuffService.getModifier(clan.getId());
+        double finalScore = clanScoringService.calculateClanScore(
+                clan.getId(), currentClanTier, List.of(modifier)
+        );
 
         return ClanResponse.builder()
                 .id(clan.getId())
