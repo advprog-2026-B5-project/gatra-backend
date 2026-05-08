@@ -26,7 +26,7 @@ public class MilestoneServiceImpl implements MilestoneService {
 
     private final StudentMilestoneProgressRepository milestoneProgressRepository;
     private final AchievementRepository achievementRepository;
-    private final UserAchievementRepository userAchievementRepository;
+    private final UserAchievementService userAchievementService;
     private final UserService userService;
     private final AchievementMapper achievementMapper;
 
@@ -55,20 +55,10 @@ public class MilestoneServiceImpl implements MilestoneService {
         List<AchievementResponse> newlyUnlocked = new ArrayList<>();
 
         for (Achievement achievement : matchingAchievements) {
-            boolean alreadyUnlocked = userAchievementRepository
-                    .existsByUserIdAndAchievementId(userId, achievement.getId());
+            boolean newlyUnlockedNow = userAchievementService.unlockIfNotYet(userId, achievement);
 
-            if (!alreadyUnlocked) {
-                UserAchievement userAchievement = UserAchievement.builder()
-                        .user(user)
-                        .achievement(achievement)
-                        .isDisplayed(false)
-                        .build();
-                
-                userAchievementRepository.save(userAchievement);
-
-                AchievementResponse response = achievementMapper.toResponseFromUserAchievement(userAchievement);
-                newlyUnlocked.add(response);
+            if (newlyUnlockedNow) {
+                newlyUnlocked.add(achievementMapper.toResponse(achievement));
             }
         }
 

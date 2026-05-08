@@ -1,10 +1,13 @@
 package id.ac.ui.cs.advprog.gatra.achievement.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
+import id.ac.ui.cs.advprog.gatra.model.User;
+import id.ac.ui.cs.advprog.gatra.service.UserService;
 import id.ac.ui.cs.advprog.gatra.service.strategy.DisplayAchievementStrategy;
 import id.ac.ui.cs.advprog.gatra.service.strategy.HideAchievementStrategy;
 import id.ac.ui.cs.advprog.gatra.service.strategy.ShowAchievementStrategy;
@@ -23,6 +26,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
     private static final int MAX_DISPLAYED_ACHIEVEMENTS = 3;
 
     private final UserAchievementRepository userAchievementRepository;
+    private final UserService userService;
     private final AchievementMapper achievementMapper;
 
     private final ShowAchievementStrategy showStrategy;
@@ -57,5 +61,25 @@ public class UserAchievementServiceImpl implements UserAchievementService {
         return userAchievementRepository
                 .findByUserUsernameAndAchievementId(username, achievementId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserAchievement", achievementId));
+    }
+
+    @Override
+    @Transactional
+    public boolean unlockIfNotYet(UUID userId, Achievement achievement) {
+        boolean alreadyUnlocked = userAchievementRepository
+                .existsByUserIdAndAchievementId(userId, achievement.getId());
+
+        if (alreadyUnlocked) return false;
+
+        User user = userService.getUserEntityById(userId);
+
+        UserAchievement userAchievement = UserAchievement.builder()
+                .user(user)
+                .achievement(achievement)
+                .isDisplayed(false)
+                .build();
+
+        userAchievementRepository.save(userAchievement);
+        return true;
     }
 }
