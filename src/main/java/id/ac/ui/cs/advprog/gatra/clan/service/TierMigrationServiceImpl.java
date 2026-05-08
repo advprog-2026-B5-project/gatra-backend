@@ -2,10 +2,15 @@ package id.ac.ui.cs.advprog.gatra.clan.service;
 
 import id.ac.ui.cs.advprog.gatra.clan.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.gatra.clan.dto.TierLeaderboardResponse;
+import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedDiamondEvent;
 import id.ac.ui.cs.advprog.gatra.clan.model.Clan;
+import id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership;
 import id.ac.ui.cs.advprog.gatra.clan.model.ClanTier;
+import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
+import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.clan.repository.ClanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +24,8 @@ public class TierMigrationServiceImpl implements TierMigrationService {
     private static final int RELEGATION_COUNT = 3;
 
     private final ClanRepository clanRepository;
+    private final ClanMembershipRepository membershipRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -75,7 +82,21 @@ public class TierMigrationServiceImpl implements TierMigrationService {
     private void updateClanTier(String clanId, ClanTier newTier) {
         Clan clan = clanRepository.findById(clanId)
                 .orElseThrow(() -> new RuntimeException("Clan tidak ditemukan: " + clanId));
+
+        ClanTier oldTier = ClanTier.valueOf(clan.getTier());
         clan.setTier(newTier.name());
         clanRepository.save(clan);
+
+        if (newTier == ClanTier.DIAMOND && oldTier != ClanTier.DIAMOND) {
+            List<String> memberIds = membershipRepository
+                    .findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)
+                    .stream()
+                    .map(ClanMembership::getUserId)
+                    .toList();
+
+            eventPublisher.publishEvent(
+                    new ClanReachedDiamondEvent(this, clanId, memberIds));
+        }
+
     }
 }
