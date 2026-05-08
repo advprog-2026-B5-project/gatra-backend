@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.StudentMilestoneProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
+import id.ac.ui.cs.advprog.gatra.achievement.service.UserAchievementService;
 import id.ac.ui.cs.advprog.gatra.model.*;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.StudentMilestoneProgressRepository;
@@ -35,6 +36,7 @@ class MilestoneServiceImplTest {
     @Mock private AchievementRepository achievementRepository;
     @Mock private UserAchievementRepository userAchievementRepository;
     @Mock private UserService userService;
+    @Mock private UserAchievementService userAchievementService;
     @Mock private AchievementMapper achievementMapper;
 
     @InjectMocks
@@ -122,19 +124,18 @@ class MilestoneServiceImplTest {
         when(milestoneProgressRepository.save(any())).thenReturn(existingProgress);
         when(achievementRepository.findByCategoryAndMilestoneThresholdLessThanEqual(
                 ActionType.READ_ARTICLE, 5)).thenReturn(List.of(achievement5));
-        when(userAchievementRepository.existsByUserIdAndAchievementId(userId, achievement5.getId()))
-                .thenReturn(false);
-        when(userAchievementRepository.save(any(UserAchievement.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
-        when(achievementMapper.toResponseFromUserAchievement(any()))
+
+        when(userAchievementService.unlockIfNotYet(eq(userId), eq(achievement5)))
+                .thenReturn(true);
+
+        when(achievementMapper.toResponse(achievement5))
                 .thenReturn(achievementResponse);
 
         MilestoneResponse result = milestoneService.recordAction(userId, ActionType.READ_ARTICLE);
 
         assertEquals(5, result.getNewTotalCount());
-        assertEquals(1, result.getNewlyUnlockedAchievements().size());
+        assertEquals(1, result.getNewlyUnlockedAchievements().size(), "List achievement baru tidak boleh kosong");
         assertEquals("Pembaca Pemula", result.getNewlyUnlockedAchievements().get(0).getName());
-        verify(userAchievementRepository).save(any(UserAchievement.class));
     }
 
     @Test
@@ -152,8 +153,6 @@ class MilestoneServiceImplTest {
         when(milestoneProgressRepository.save(any())).thenReturn(existingProgress);
         when(achievementRepository.findByCategoryAndMilestoneThresholdLessThanEqual(
                 ActionType.READ_ARTICLE, 6)).thenReturn(List.of(achievement5));
-        when(userAchievementRepository.existsByUserIdAndAchievementId(userId, achievement5.getId()))
-                .thenReturn(true);
 
         MilestoneResponse result = milestoneService.recordAction(userId, ActionType.READ_ARTICLE);
 

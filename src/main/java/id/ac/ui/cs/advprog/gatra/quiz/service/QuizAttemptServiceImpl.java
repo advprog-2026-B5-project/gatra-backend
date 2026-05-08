@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.gatra.quiz.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
-import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
 import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.model.Article;
 import id.ac.ui.cs.advprog.gatra.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;

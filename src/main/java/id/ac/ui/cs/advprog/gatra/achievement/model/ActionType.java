@@ -1,5 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.achievement.model;
 
 public enum ActionType {
-    READ_ARTICLE, FINISH_QUIZ
+    READ_ARTICLE, FINISH_QUIZ, HIGHEST_TIER
 }

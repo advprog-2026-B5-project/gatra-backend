@@ -5,9 +5,9 @@ import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.dto.UserResponse;
+import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 
-import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

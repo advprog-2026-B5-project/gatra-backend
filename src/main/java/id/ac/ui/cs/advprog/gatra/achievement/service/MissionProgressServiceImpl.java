@@ -13,7 +13,6 @@ import id.ac.ui.cs.advprog.gatra.achievement.model.UserMissionProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
 import id.ac.ui.cs.advprog.gatra.service.UserService;
-import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
 import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import lombok.RequiredArgsConstructor;

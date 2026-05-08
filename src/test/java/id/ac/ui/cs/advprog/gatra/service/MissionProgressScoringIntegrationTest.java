@@ -51,7 +51,7 @@ class MissionProgressScoringIntegrationTest {
     @BeforeEach
     void setUp() {
         userId = UUID.randomUUID();
-        username = "roselia.evanny";
+        username = "user";
         missionId = UUID.randomUUID();
 
         mockUser = User.builder()
@@ -71,7 +71,6 @@ class MissionProgressScoringIntegrationTest {
         mockProgress.setIsClaimed(false);
 
         when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
-
         when(dailyMissionRepository.findById(missionId)).thenReturn(Optional.of(mockMission));
         when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(mockProgress));
         when(progressMapper.toResponse(any(), any())).thenReturn(new MissionProgressResponse());
