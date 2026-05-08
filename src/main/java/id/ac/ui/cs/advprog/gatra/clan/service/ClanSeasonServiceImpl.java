@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SeasonServiceImpl implements SeasonService {
+public class ClanSeasonServiceImpl implements ClanSeasonService {
 
     private final LeaderboardService leaderboardService;
     private final SeasonSnapshotRepository snapshotRepository;
