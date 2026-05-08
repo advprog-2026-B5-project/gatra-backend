@@ -5,6 +5,9 @@ import id.ac.ui.cs.advprog.gatra.model.User;
 import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.dto.UserResponse;
+import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
+import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,6 +32,9 @@ class UserServiceTest {
 
     @Mock
     private StudentProfileRepository studentProfileRepository;
+
+    @Mock
+    private PointHistoryRepository pointHistoryRepository;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -118,5 +124,62 @@ class UserServiceTest {
         });
 
         assertEquals("User tidak ditemukan", exception.getMessage());
+    }
+
+    @Test
+    void getUserEntityById_ShouldReturnUser_WhenFound() {
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .id(userId)
+                .username("user")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        User result = userService.getUserEntityById(userId);
+
+        assertNotNull(result);
+        assertEquals(userId, result.getId());
+        assertEquals("user", result.getUsername());
+        verify(userRepository, times(1)).findById(userId);
+    }
+
+    @Test
+    void getUserEntityById_ShouldThrowException_WhenNotFound() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.getUserEntityById(userId);
+        });
+
+        assertEquals("User tidak ditemukan", exception.getMessage());
+    }
+
+    @Test
+    void getUserEntityByUsername_ShouldReturnUser_WhenFound() {
+        String username = "user2";
+        User user = User.builder()
+                .id(UUID.randomUUID())
+                .username(username)
+                .build();
+
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        User result = userService.getUserEntityByUsername(username);
+
+        assertNotNull(result);
+        assertEquals(username, result.getUsername());
+        verify(userRepository, times(1)).findByUsername(username);
+    }
+
+    @Test
+    void getUserEntityByUsername_ShouldThrowException_WhenNotFound() {
+        String username = "unknown_user";
+        when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> {
+            userService.getUserEntityByUsername(username);
+        });
     }
 }

@@ -1,72 +1,97 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.dto.DailyMissionResponse;
-import id.ac.ui.cs.advprog.gatra.service.DailyMissionService;
-import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
+import id.ac.ui.cs.advprog.gatra.achievement.controller.StudentMissionController;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(StudentMissionController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@ExtendWith(MockitoExtension.class)
 class StudentMissionControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    private MissionProgressService missionProgressService;
 
-    @MockitoBean
-    private DailyMissionService dailyMissionService;
+    @Mock
+    private UserDetails userDetails;
 
-    @MockitoBean
-    private JwtUtil jwtUtil;
+    @InjectMocks
+    private StudentMissionController studentMissionController;
 
-    @MockitoBean
-    private UserDetailsService userDetailsService;
+    private UUID missionId;
+    private String username;
 
-    @Test
-    @WithMockUser(roles = "STUDENT")
-    void getActiveMissions_ShouldReturnListOfMissions() throws Exception {
-        UUID missionId = UUID.randomUUID();
-        DailyMissionResponse response = DailyMissionResponse.builder()
-                .id(missionId)
-                .title("Baca Artikel Populer")
-                .rewardPoints(20)
-                .actionType("READ_ARTICLE")
-                .status("ACTIVE")
-                .build();
-
-        when(dailyMissionService.getActiveMissions()).thenReturn(List.of(response));
-
-        mockMvc.perform(get("/api/daily-missions/active")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].id").value(missionId.toString()))
-                .andExpect(jsonPath("$[0].title").value("Baca Artikel Populer"))
-                .andExpect(jsonPath("$[0].rewardPoints").value(20));
+    @BeforeEach
+    void setUp() {
+        missionId = UUID.randomUUID();
+        username = "roselia.evanny";
     }
 
     @Test
-    @WithMockUser(roles = "STUDENT")
-    void getActiveMissions_WhenEmpty_ShouldReturnEmptyList() throws Exception {
-        when(dailyMissionService.getActiveMissions()).thenReturn(List.of());
+    void getMyMissions_shouldReturnOkWithList() {
+        MissionProgressResponse response = MissionProgressResponse.builder()
+                .missionId(missionId)
+                .title("Misi Gatra")
+                .currentCount(2)
+                .targetCount(5)
+                .isCompleted(false)
+                .build();
 
-        mockMvc.perform(get("/api/daily-missions/active")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()").value(0));
+        when(userDetails.getUsername()).thenReturn(username);
+        when(missionProgressService.getActiveMissionsWithProgress(username))
+                .thenReturn(List.of(response));
+
+        ResponseEntity<List<MissionProgressResponse>> result = studentMissionController.getMyMissions(userDetails);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals(1, result.getBody().size());
+        assertEquals("Misi Gatra", result.getBody().get(0).getTitle());
+        verify(missionProgressService, times(1)).getActiveMissionsWithProgress(username);
+    }
+
+    @Test
+    void getMyMissions_whenNoMissions_shouldReturnOkWithEmptyList() {
+        when(userDetails.getUsername()).thenReturn(username);
+        when(missionProgressService.getActiveMissionsWithProgress(username))
+                .thenReturn(List.of());
+
+        ResponseEntity<List<MissionProgressResponse>> result = studentMissionController.getMyMissions(userDetails);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isEmpty());
+    }
+
+    @Test
+    void claimReward_shouldReturnOk() {
+        MissionProgressResponse response = MissionProgressResponse.builder()
+                .missionId(missionId)
+                .isCompleted(true)
+                .isClaimed(true)
+                .build();
+
+        when(userDetails.getUsername()).thenReturn(username);
+        when(missionProgressService.claimReward(username, missionId))
+                .thenReturn(response);
+
+        ResponseEntity<MissionProgressResponse> result = studentMissionController.claimReward(missionId, userDetails);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertTrue(result.getBody().getIsClaimed());
+        verify(missionProgressService, times(1)).claimReward(username, missionId);
     }
 }
