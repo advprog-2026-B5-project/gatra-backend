@@ -18,6 +18,7 @@ public class ClanSeasonServiceImpl implements ClanSeasonService {
     private final LeaderboardService leaderboardService;
     private final SeasonSnapshotRepository snapshotRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final TierMigrationService tierMigrationService;
 
     @Override
     @Transactional
@@ -48,6 +49,8 @@ public class ClanSeasonServiceImpl implements ClanSeasonService {
             }
 
         }
+
+        tierMigrationService.migrate(leaderboards);
 
         return SeasonResultResponse.builder()
                 .seasonNumber(newSeasonNumber)
