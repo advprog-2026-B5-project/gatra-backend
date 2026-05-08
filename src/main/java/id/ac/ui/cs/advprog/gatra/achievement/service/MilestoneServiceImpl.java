@@ -3,17 +3,16 @@ package id.ac.ui.cs.advprog.gatra.achievement.service;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.StudentMilestoneProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
-import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.model.*;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.StudentMilestoneProgressRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
-import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,20 +22,18 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class MilestoneServiceImpl implements MilestoneService {
 
     private final StudentMilestoneProgressRepository milestoneProgressRepository;
     private final AchievementRepository achievementRepository;
     private final UserAchievementRepository userAchievementRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final AchievementMapper achievementMapper;
 
     @Override
     @Transactional
     public MilestoneResponse recordAction(UUID userId, ActionType actionType) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        User user = userService.getUserEntityById(userId);
 
         StudentMilestoneProgress progress = milestoneProgressRepository
                 .findByUserIdAndActionType(userId, actionType)
@@ -50,8 +47,6 @@ public class MilestoneServiceImpl implements MilestoneService {
         milestoneProgressRepository.save(progress);
 
         int newCount = progress.getTotalCount();
-        log.info("User {} performed action {} — total count now: {}",
-                userId, actionType, newCount);
 
         List<Achievement> matchingAchievements =
                 achievementRepository.findByCategoryAndMilestoneThresholdLessThanEqual(
@@ -69,13 +64,11 @@ public class MilestoneServiceImpl implements MilestoneService {
                         .achievement(achievement)
                         .isDisplayed(false)
                         .build();
+                
                 userAchievementRepository.save(userAchievement);
 
                 AchievementResponse response = achievementMapper.toResponseFromUserAchievement(userAchievement);
                 newlyUnlocked.add(response);
-
-                log.info("User {} unlocked achievement: {} (threshold: {})",
-                        userId, achievement.getName(), achievement.getMilestoneThreshold());
             }
         }
 
