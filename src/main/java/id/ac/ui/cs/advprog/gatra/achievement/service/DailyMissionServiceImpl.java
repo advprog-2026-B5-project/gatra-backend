@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
 import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ public class DailyMissionServiceImpl implements DailyMissionService {
 
     private final DailyMissionRepository missionRepository;
     private final DailyMissionMapper missionMapper;
+    private final UserMissionProgressRepository progressRepository;
 
     @Override
     public DailyMissionResponse createMission(DailyMissionRequest request) {
@@ -61,6 +63,8 @@ public class DailyMissionServiceImpl implements DailyMissionService {
     @Override
     @Transactional
     public void rotateMissions() {
+        progressRepository.deleteAll();
+
         List<DailyMission> allMissions = missionRepository.findAll();
         allMissions.forEach(m -> m.setStatus(MissionStatus.INACTIVE));
 

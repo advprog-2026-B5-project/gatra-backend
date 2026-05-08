@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.gatra.service;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.DailyMissionMapper;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
@@ -32,6 +33,9 @@ class DailyMissionServiceImplTest {
 
     @Mock
     private DailyMissionRepository missionRepository;
+
+    @Mock
+    private UserMissionProgressRepository progressRepository;
 
     @Spy
     private DailyMissionMapper missionMapper;
