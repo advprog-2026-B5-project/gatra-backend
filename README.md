@@ -33,3 +33,12 @@ Perubahan arsitektur menjadi event-driven microservices didasari oleh kebutuhan 
 API gateway akan menjadi gerbang yang memperketat keamanan API publik melalui sentralisasi autentikasi, rate limiting, kebijakan CORS, serta pencatatan log. Sementara itu, penggunaan message broker akan meminimalkan ketergantungan antar-layanan. Misalnya, ketika seorang siswa menyelesaikan kuis, service kuis cukup mengirimkan sinyal `QuizCompleted`. Service achievement dan scoring kemudian akan menangkap sinyal tersebut untuk memperbarui data secara mandiri. Jika salah satu layanan sedang sibuk atau tidak tersedia, sistem dapat melakukan percobaan ulang tanpa menyebabkan proses kuis pengguna gagal. Jika service scoring sedang down, data kuis tidak hilang. Pesan tetap tersimpan di dalam queue pada broker, dan akan diproses secara otomatis saat layanan kembali pulih.
 
 Penerapan arsitektur ini meningkatkan skalabilitas dan memperjelas pembagian tanggung jawab modul. Namun, terdapat drawback seperti memastikan konsistensi data, mencegah duplikasi event, serta menjamin bahwa setiap layanan bersifat idempoten. Selain itu, perlu juga untuk menangani prosedur deployment yang jauh lebih rumit.
+
+## Component and Code Diagram for Auth/User
+
+---
+### Component Diagram
+![img.png](assets/component-auth.png)
+### Code Diagram
+![img.png](assets/code-auth-1.png)
+![img.png](assets/code-auth-2.png)
