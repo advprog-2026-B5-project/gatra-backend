@@ -51,3 +51,22 @@ Penerapan arsitektur ini meningkatkan skalabilitas dan memperjelas pembagian tan
 ![img.png](assets/code-article-1.png)
 ![img.png](assets/code-article-2.png)
 ![img.png](assets/code-article-3.png)
+
+## Component and Code Diagram for Achievement
+
+---
+### Component Diagram
+![img.png](assets/component-achievement.png)
+### Code Diagram
+DTO & Mapper
+
+![img.png](assets/code-achievement-dto-mapper.png)
+
+Model
+![img.png](assets/code-achievement-model.png)
+
+Controller
+![img.png](assets/code-achievement-controller.png)
+
+Service & Repository
+![img.png](assets/code-achievement-service-repo.png)
