@@ -42,3 +42,12 @@ Penerapan arsitektur ini meningkatkan skalabilitas dan memperjelas pembagian tan
 ### Code Diagram
 ![img.png](assets/code-auth-1.png)
 ![img.png](assets/code-auth-2.png)
+
+## Component and Code Diagram for Article & Quiz
+
+### Component Diagram
+![img.png](assets/container-article.png)
+### Code Diagram
+![img.png](assets/code-article-1.png)
+![img.png](assets/code-article-2.png)
+![img.png](assets/code-article-3.png)
