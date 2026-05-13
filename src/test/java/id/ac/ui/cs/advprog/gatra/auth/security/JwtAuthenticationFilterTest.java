@@ -1,7 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.auth.security;
 
-import id.ac.ui.cs.advprog.gatra.auth.security.JwtAuthenticationFilter;
-import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -25,9 +22,6 @@ class JwtAuthenticationFilterTest {
 
     @Mock
     private JwtUtil jwtUtil;
-
-    @Mock
-    private UserDetailsService userDetailsService; // Jika Anda menggunakannya di dalam filter
 
     @Mock
     private HttpServletRequest request;
@@ -58,9 +52,10 @@ class JwtAuthenticationFilterTest {
     void testDoFilterInternal_WithValidToken() throws Exception {
         String token = "valid-token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
         when(jwtUtil.extractUsername(token)).thenReturn("anya");
-        when(userDetailsService.loadUserByUsername("anya")).thenReturn(userDetails);
-        when(jwtUtil.isTokenValid(token, userDetails)).thenReturn(true);
+        when(jwtUtil.extractRole(token)).thenReturn("ROLE_STUDENT");
+        when(jwtUtil.extractUserId(token)).thenReturn("some-uuid-1234");
 
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 

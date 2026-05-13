@@ -2,8 +2,6 @@ package id.ac.ui.cs.advprog.gatra.auth.security;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
-import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
-import id.ac.ui.cs.advprog.gatra.auth.security.OAuth2LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;

@@ -2,7 +2,6 @@ package id.ac.ui.cs.advprog.gatra.auth.security;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.Role;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
-import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
