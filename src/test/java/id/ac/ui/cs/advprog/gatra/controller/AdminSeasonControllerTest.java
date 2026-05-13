@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
 import id.ac.ui.cs.advprog.gatra.scoring.service.SeasonService;
-import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
+import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

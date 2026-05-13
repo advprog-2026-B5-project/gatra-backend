@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.config;
 
-import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

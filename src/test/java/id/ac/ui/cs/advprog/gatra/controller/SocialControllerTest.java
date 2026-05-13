@@ -1,8 +1,8 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.dto.PublicProfileResponse;
-import id.ac.ui.cs.advprog.gatra.dto.UserSearchResponse;
-import id.ac.ui.cs.advprog.gatra.security.JwtUtil;
+import id.ac.ui.cs.advprog.gatra.auth.dto.PublicProfileResponse;
+import id.ac.ui.cs.advprog.gatra.auth.dto.UserSearchResponse;
+import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import id.ac.ui.cs.advprog.gatra.service.SocialService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

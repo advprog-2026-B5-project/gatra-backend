@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.service;
 
-import id.ac.ui.cs.advprog.gatra.dto.PublicProfileResponse;
-import id.ac.ui.cs.advprog.gatra.dto.UserSearchResponse;
+import id.ac.ui.cs.advprog.gatra.auth.dto.PublicProfileResponse;
+import id.ac.ui.cs.advprog.gatra.auth.dto.UserSearchResponse;
 import java.util.List;
 
 public interface SocialService {

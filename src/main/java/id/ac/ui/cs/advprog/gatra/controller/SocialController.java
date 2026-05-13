@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.controller;
 
-import id.ac.ui.cs.advprog.gatra.dto.PublicProfileResponse;
-import id.ac.ui.cs.advprog.gatra.dto.UserSearchResponse;
+import id.ac.ui.cs.advprog.gatra.auth.dto.PublicProfileResponse;
+import id.ac.ui.cs.advprog.gatra.auth.dto.UserSearchResponse;
 import id.ac.ui.cs.advprog.gatra.service.SocialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
