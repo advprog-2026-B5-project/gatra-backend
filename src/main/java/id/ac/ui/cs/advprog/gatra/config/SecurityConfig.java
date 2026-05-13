@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.config;
 
-import id.ac.ui.cs.advprog.gatra.security.JwtAuthenticationFilter;
-import id.ac.ui.cs.advprog.gatra.security.OAuth2LoginSuccessHandler;
+import id.ac.ui.cs.advprog.gatra.auth.security.JwtAuthenticationFilter;
+import id.ac.ui.cs.advprog.gatra.auth.security.OAuth2LoginSuccessHandler;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

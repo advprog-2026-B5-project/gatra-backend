@@ -4,11 +4,9 @@ import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 
-import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
-import id.ac.ui.cs.advprog.gatra.model.User;
-import id.ac.ui.cs.advprog.gatra.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.auth.model.User;
+import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
-import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.achievement.model;
 
-import id.ac.ui.cs.advprog.gatra.model.User;
+import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 

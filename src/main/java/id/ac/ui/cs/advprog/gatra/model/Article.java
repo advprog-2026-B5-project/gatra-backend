@@ -1,4 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.model;
+import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
