@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -61,11 +62,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // If token is valid and user is not yet authenticated in this request context
         if (username != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Build authorities directly from the JWT claim
             SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+            // Create a lightweight UserDetails object in memory
+            UserDetails principal = new org.springframework.security.core.userdetails.User(
                     username,
+                    "", // Empty password since we already trust the JWT
+                    Collections.singletonList(authority)
+            );
+
+            // Pass the principal object, not just the string
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                    principal,
                     null,
                     Collections.singletonList(authority)
             );
