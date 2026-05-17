@@ -1,10 +1,10 @@
 package id.ac.ui.cs.advprog.gatra.auth.security;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.Role;
-import id.ac.ui.cs.advprog.gatra.model.StudentProfile;
+import id.ac.ui.cs.advprog.gatra.auth.model.StudentProfile;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.model.AuthProvider;
-import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
+import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
