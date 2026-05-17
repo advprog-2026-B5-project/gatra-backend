@@ -1,8 +1,7 @@
-package id.ac.ui.cs.advprog.gatra.clan.service;
+package id.ac.ui.cs.advprog.gatra.scoring.service;
 
 import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
-import id.ac.ui.cs.advprog.gatra.scoring.service.SeasonServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
