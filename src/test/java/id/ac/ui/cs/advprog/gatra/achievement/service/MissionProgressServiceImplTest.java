@@ -207,4 +207,67 @@ class MissionProgressServiceImplTest {
         verify(progressRepository).save(progress);
         verify(progressMapper).toResponse(mission, progress);
     }
+
+    @Test
+    void getActiveMissionsWithProgress_whenProgressEmpty_shouldReturnMissions() {
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.empty());
+        when(progressMapper.toResponse(mission, null)).thenReturn(responseDto);
+
+        List<MissionProgressResponse> result = missionProgressService.getActiveMissionsWithProgress(username);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void claimReward_whenClanMembershipExistsAndRewardPointsGTZero_shouldRecordPoints() {
+        progress.setCurrentCount(3);
+        mission.setRewardPoints(100);
+        
+        MissionProgressResponse claimedResponse = MissionProgressResponse.builder()
+                .missionId(missionId).isClaimed(true).build();
+
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
+        
+        id.ac.ui.cs.advprog.gatra.clan.model.Clan clan = new id.ac.ui.cs.advprog.gatra.clan.model.Clan();
+        clan.setId(UUID.randomUUID().toString());
+        id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership membership = id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership.builder()
+                .clan(clan)
+                .build();
+        when(clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus.APPROVED))
+                .thenReturn(Optional.of(membership));
+                
+        when(progressMapper.toResponse(mission, progress)).thenReturn(claimedResponse);
+
+        MissionProgressResponse result = missionProgressService.claimReward(username, missionId);
+
+        assertTrue(result.getIsClaimed());
+        verify(pointRecordingService).recordPoints(eq(userId.toString()), eq(clan.getId()), eq(100.0), eq(id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType.DAILY_MISSION_COMPLETED), eq(missionId.toString()));
+    }
+    
+    @Test
+    void claimReward_whenMissionNotFound_shouldThrow() {
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findById(missionId)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+            () -> missionProgressService.claimReward(username, missionId));
+    }
+
+    @Test
+    void incrementProgress_whenProgressAlreadyCompleted_shouldNotIncrement() {
+        progress.setCurrentCount(3);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
+
+        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
+
+        assertTrue(result.isEmpty());
+        verify(progressRepository, never()).save(any());
+    }
 }

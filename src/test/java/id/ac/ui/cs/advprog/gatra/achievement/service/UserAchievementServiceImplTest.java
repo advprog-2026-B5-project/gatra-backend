@@ -8,6 +8,8 @@ import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepositor
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.strategy.HideAchievementStrategy;
 import id.ac.ui.cs.advprog.gatra.achievement.strategy.ShowAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.auth.model.User;
+import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,16 +40,23 @@ class UserAchievementServiceImplTest {
     @Mock
     private HideAchievementStrategy hideStrategy;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private UserAchievementServiceImpl userAchievementService;
 
     private final String USERNAME = "user123";
     private UUID achievementId;
+    private UUID userId;
+    private Achievement achievement;
     private UserAchievement userAchievement;
 
     @BeforeEach
     void setUp() {
         achievementId = UUID.randomUUID();
+        userId = UUID.randomUUID();
+        achievement = Achievement.builder().id(achievementId).name("Master").build();
         userAchievement = new UserAchievement();
     }
 
@@ -131,5 +140,25 @@ class UserAchievementServiceImplTest {
         assertThrows(ResourceNotFoundException.class, () -> 
             userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true)
         );
+    }
+
+    @Test
+    void unlockIfNotYet_whenAlreadyUnlocked_returnsFalse() {
+        when(userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId)).thenReturn(true);
+        boolean result = userAchievementService.unlockIfNotYet(userId, achievement);
+        assertFalse(result);
+        verify(userAchievementRepository, never()).save(any());
+    }
+
+    @Test
+    void unlockIfNotYet_whenNotUnlocked_returnsTrueAndSaves() {
+        when(userAchievementRepository.existsByUserIdAndAchievementId(userId, achievementId)).thenReturn(false);
+        User user = new User();
+        user.setId(userId);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+
+        boolean result = userAchievementService.unlockIfNotYet(userId, achievement);
+        assertTrue(result);
+        verify(userAchievementRepository, times(1)).save(any(UserAchievement.class));
     }
 }
