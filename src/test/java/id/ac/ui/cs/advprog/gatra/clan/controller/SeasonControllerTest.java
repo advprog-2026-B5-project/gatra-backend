@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.clan.controller;
 
-import id.ac.ui.cs.advprog.gatra.scoring.service.SeasonService;
+import id.ac.ui.cs.advprog.gatra.clan.dto.SeasonResultResponse;
+import id.ac.ui.cs.advprog.gatra.clan.service.ClanSeasonService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,30 +16,32 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
-@WebMvcTest(controllers = AdminSeasonController.class)
+@WebMvcTest(controllers = SeasonController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class AdminSeasonControllerTest {
+class SeasonControllerTest {
 
     @Autowired private MockMvc mockMvc;
-    @MockitoBean private SeasonService seasonService;
+    @MockitoBean private ClanSeasonService seasonService;
     @MockitoBean private JwtUtil jwtUtil;
     @MockitoBean private UserDetailsService userDetailsService;
 
     @Test
-    void resetSeason_success() throws Exception {
-        doNothing().when(seasonService).resetSeason();
+    void endSeason_success() throws Exception {
+        SeasonResultResponse res = SeasonResultResponse.builder().seasonNumber(1).build();
+        when(seasonService.endSeason()).thenReturn(res);
 
-        mockMvc.perform(post("/api/admin/season/reset"))
+        mockMvc.perform(post("/clans/season/end"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.seasonNumber").value(1));
     }
 
     @Test
-    void resetSeason_error() throws Exception {
-        doThrow(new RuntimeException("Err")).when(seasonService).resetSeason();
+    void getLastSeason_success() throws Exception {
+        SeasonResultResponse res = SeasonResultResponse.builder().seasonNumber(1).build();
+        when(seasonService.getLastSeasonResult()).thenReturn(res);
 
-        mockMvc.perform(post("/api/admin/season/reset"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").exists());
+        mockMvc.perform(get("/clans/season/last"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.seasonNumber").value(1));
     }
 }
