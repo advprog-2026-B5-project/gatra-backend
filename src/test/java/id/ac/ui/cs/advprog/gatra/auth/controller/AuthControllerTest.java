@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -87,18 +88,55 @@ class AuthControllerTest {
     }
 
     @Test
-    @Disabled("Status code mismatch, investigation in progress")
     void testLogin_ReturnsUnauthorized_WhenBadCredentials() throws Exception {
         LoginRequest request = new LoginRequest();
         request.setIdentifier("anya@gatra.id");
         request.setPassword("salah123");
 
+        // FIX: Throw the correct exception that the Controller is looking for
         Mockito.when(authService.login(any(LoginRequest.class)))
-                .thenThrow(new IllegalArgumentException("Username atau password salah"));
+                .thenThrow(new BadCredentialsException("Email/Nomor HP atau Password salah"));
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized()) // 401 status code
+                .andExpect(content().string("Email/Nomor HP atau Password salah"));
+    }
+
+    @Test
+    void testRegister_ReturnsInternalServerError_OnGenericException() throws Exception {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("anya");
+        request.setPassword("password123");
+
+        request.setEmail("anya@gatra.id");
+        request.setDisplayName("Anya Forger");
+        request.setPhoneNumber("08123456789");
+
+        Mockito.when(authService.registerStudent(any(RegisterRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected Database Failure"));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Terjadi kesalahan pada server"));
+    }
+
+    @Test
+    void testLogin_ReturnsInternalServerError_OnGenericException() throws Exception {
+        LoginRequest request = new LoginRequest();
+        request.setIdentifier("anya@gatra.id");
+        request.setPassword("password123");
+
+        Mockito.when(authService.login(any(LoginRequest.class)))
+                .thenThrow(new RuntimeException("Unexpected Network Failure"));
+
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Terjadi kesalahan pada server saat login"));
     }
 }
