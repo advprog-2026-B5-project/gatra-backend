@@ -98,4 +98,17 @@ class OAuth2LoginSuccessHandlerTest {
         verify(userRepository, times(1)).save(any(User.class));
         verify(response).sendRedirect(contains("token=dummy-token-new"));
     }
+
+    @Test
+    void testOnAuthenticationSuccess_EmailNull_ReturnsBadRequest() throws Exception {
+        when(authentication.getPrincipal()).thenReturn(oAuth2User);
+        // Google mengembalikan payload tanpa email
+        when(oAuth2User.getAttribute("email")).thenReturn(null);
+
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        verify(response).sendError(HttpServletResponse.SC_BAD_REQUEST, "Email tidak ditemukan dari Google");
+        verify(userRepository, never()).save(any(id.ac.ui.cs.advprog.gatra.auth.model.User.class));
+        verify(response, never()).sendRedirect(anyString());
+    }
 }
