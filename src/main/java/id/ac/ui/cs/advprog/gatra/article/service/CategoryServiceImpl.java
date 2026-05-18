@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.article.service;
 
 import id.ac.ui.cs.advprog.gatra.article.dto.CategoryRequest;
 import id.ac.ui.cs.advprog.gatra.article.dto.CategoryResponse;
+import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.article.mapper.CategoryMapper;
 import id.ac.ui.cs.advprog.gatra.article.model.Category;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,10 +22,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
+    private static final String fallback_category_name = "Dll";
+    private final ArticleRepository articleRepository;
 
     @Override
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
+                .filter(c -> c.getDeletedAt() == null)
                 .map(categoryMapper::toResponse)
                 .collect(Collectors.toList());
     }
@@ -50,15 +55,29 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.toResponse(categoryRepository.save(category));
     }
 
-    @Override
-    @Transactional
-    public void deleteCategory(UUID id) {
-        findCategoryOrThrow(id);
-        categoryRepository.deleteById(id);
-    }
-
     private Category findCategoryOrThrow(UUID id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+    }
+
+    @Override
+    @Transactional
+    public void deleteCategory(UUID id) {
+        Category category = findCategoryOrThrow(id);
+
+        Category fallback = categoryRepository.findByName(fallback_category_name)
+                .orElseGet(() -> categoryRepository.save(
+                        Category.builder().name(fallback_category_name).build()
+                ));
+
+        articleRepository.findByCategoryId(id)
+                .forEach(article -> {
+                    article.setCategory(fallback);
+                    articleRepository.save(article);
+                });
+
+        // Soft delete kategori
+        category.setDeletedAt(LocalDateTime.now());
+        categoryRepository.save(category);
     }
 }
