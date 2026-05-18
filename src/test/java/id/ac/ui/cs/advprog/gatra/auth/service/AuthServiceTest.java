@@ -74,9 +74,6 @@ class AuthServiceTest {
         loginRequest.setPassword("password123");
     }
 
-    // ==========================================
-    // TESTS UNTUK REGISTER
-    // ==========================================
     @Test
     void testRegister_Success() {
         Mockito.when(userRepository.existsByUsername(anyString())).thenReturn(false);
@@ -103,9 +100,6 @@ class AuthServiceTest {
         Mockito.verify(userRepository, Mockito.never()).save(any());
     }
 
-    // ==========================================
-    // TESTS UNTUK LOGIN
-    // ==========================================
     @Test
     void testLogin_Success() {
         // Simulasi sukses otentikasi
@@ -133,5 +127,76 @@ class AuthServiceTest {
 
         // 4. Pastikan pesan error-nya sesuai
         assertEquals("Email/Nomor HP atau Password salah", exception.getMessage());
+    }
+
+    @Test
+    void registerStudent_ShouldThrowException_WhenEmailAlreadyExists() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("newuser");
+        request.setEmail("anya@gatra.id"); // Provide an email
+        request.setPassword("password123");
+
+        // Username is free, but Email is taken
+        Mockito.when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+        Mockito.when(userRepository.existsByEmail(request.getEmail())).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authService.registerStudent(request);
+        });
+
+        assertEquals("Email sudah terdaftar", exception.getMessage());
+        Mockito.verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    void registerStudent_ShouldThrowException_WhenPhoneNumberAlreadyExists() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("newuser");
+        request.setEmail("new@gatra.id");
+        request.setPhoneNumber("08123456789"); // Provide a phone number
+        request.setPassword("password123");
+
+        // Username and Email are free, but Phone is taken
+        Mockito.when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+        Mockito.when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
+        Mockito.when(userRepository.existsByPhoneNumber(request.getPhoneNumber())).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            authService.registerStudent(request);
+        });
+
+        assertEquals("Nomor HP sudah terdaftar", exception.getMessage());
+        Mockito.verify(userRepository, Mockito.never()).save(any(User.class));
+    }
+
+    @Test
+    void registerStudent_ShouldSucceed_WhenEmailAndPhoneAreNull() {
+        RegisterRequest request = new RegisterRequest();
+        request.setUsername("newuser");
+        request.setPassword("password123");
+        // Explicitly leaving email and phone as NULL to test the short-circuit logic
+
+        Mockito.when(userRepository.existsByUsername(request.getUsername())).thenReturn(false);
+        // Note: We DO NOT mock existsByEmail or existsByPhoneNumber here
+        // because the '!= null' check should prevent those repository methods from ever being called!
+
+        User savedUser = User.builder()
+                .id(UUID.randomUUID())
+                .username("newuser")
+                .role(Role.ROLE_STUDENT)
+                .build();
+
+        Mockito.when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        Mockito.when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        Mockito.when(jwtUtil.generateToken(any(User.class))).thenReturn("dummy.jwt.token");
+
+        AuthResponse response = authService.registerStudent(request);
+
+        assertNotNull(response);
+        assertEquals("newuser", response.getUsername());
+
+        // Verify the repository was never queried for email or phone
+        Mockito.verify(userRepository, Mockito.never()).existsByEmail(anyString());
+        Mockito.verify(userRepository, Mockito.never()).existsByPhoneNumber(anyString());
     }
 }

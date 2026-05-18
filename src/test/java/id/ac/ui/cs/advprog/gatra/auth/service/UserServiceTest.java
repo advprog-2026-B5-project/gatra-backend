@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.auth.service;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.Role;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
+import id.ac.ui.cs.advprog.gatra.model.StudentProfile;
 import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.auth.dto.UserResponse;
@@ -181,5 +182,182 @@ class UserServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> {
             userService.getUserEntityByUsername(username);
         });
+    }
+
+    @Test
+    void updateUser_ShouldThrowException_WhenUserNotFound() {
+        UUID userId = UUID.randomUUID();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            userService.updateUser(userId, "New Name", "08123");
+        });
+
+        assertEquals("User tidak ditemukan", exception.getMessage());
+    }
+
+    @Test
+    void updateUser_ShouldOnlyUpdateDisplayName_WhenPhoneIsBlank() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.builder().id(userId).displayName("Old").phoneNumber("123").build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        User updatedUser = userService.updateUser(userId, "New Name", "  "); // Blank phone
+
+        assertEquals("New Name", updatedUser.getDisplayName());
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    void updateUser_ShouldOnlyUpdatePhone_WhenDisplayNameIsNull() {
+        UUID userId = UUID.randomUUID();
+        User existingUser = User.builder().id(userId).displayName("Old").phoneNumber("123").build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        User updatedUser = userService.updateUser(userId, null, "999"); // Null name
+
+        assertEquals("999", updatedUser.getPhoneNumber());
+        verify(userRepository, times(1)).save(existingUser);
+    }
+
+    @Test
+    void getUserById_ShouldReturnUserResponse_WhenFound() {
+        UUID userId = UUID.randomUUID();
+        User mockUser = User.builder()
+                .id(userId)
+                .username("testuser")
+                .role(Role.ROLE_STUDENT)
+                .build();
+
+        StudentProfile mockProfile = StudentProfile.builder()
+                .user(mockUser)
+                .currentLeagueTier("Silver")
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(studentProfileRepository.findById(userId)).thenReturn(Optional.of(mockProfile));
+        when(pointHistoryRepository.sumPointsByUserId(userId.toString())).thenReturn(150.5);
+
+        UserResponse response = userService.getUserById(userId);
+
+        assertNotNull(response);
+        assertEquals("testuser", response.getUsername());
+        assertEquals(151, response.getTotalScore()); // Tests the Math.round()
+        assertEquals("Silver", response.getCurrentLeagueTier());
+    }
+
+    @Test
+    void getUserById_ShouldReturnDefaultBronze_WhenProfileNotFound() {
+        UUID userId = UUID.randomUUID();
+        User mockUser = User.builder()
+                .id(userId)
+                .username("testuser")
+                .role(Role.ROLE_STUDENT)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(studentProfileRepository.findById(userId)).thenReturn(Optional.empty()); // No profile
+        when(pointHistoryRepository.sumPointsByUserId(userId.toString())).thenReturn(0.0);
+
+        UserResponse response = userService.getUserById(userId);
+
+        assertEquals("Bronze", response.getCurrentLeagueTier());
+    }
+
+    @Test
+    void getAllUsers_ShouldReturnEmptyList_WhenNoUsersExist() {
+        when(userRepository.findAll()).thenReturn(java.util.Collections.emptyList());
+
+        List<UserResponse> responses = userService.getAllUsers();
+
+        assertTrue(responses.isEmpty());
+    }
+
+    @Test
+    void getAllUsers_ShouldReturnMappedResponses_WithBatchData() {
+        // 1. Setup Mock Users
+        UUID user1Id = UUID.randomUUID();
+        UUID user2Id = UUID.randomUUID();
+
+        User user1 = User.builder().id(user1Id).username("user1").role(Role.ROLE_STUDENT).build();
+        User user2 = User.builder().id(user2Id).username("user2").role(Role.ROLE_STUDENT).build();
+        List<User> mockUsers = List.of(user1, user2);
+
+        // 2. Setup Mock Profiles
+        StudentProfile profile1 = StudentProfile.builder().user(user1).currentLeagueTier("Gold").build();
+        // user2 intentionally has no profile to test the fallback
+
+        // 3. Setup Mock Scores for the bulk query
+        List<Object[]> mockBulkScores = new java.util.ArrayList<>();
+        mockBulkScores.add(new Object[]{user1Id.toString(), 500.0});
+        // user2 score intentionally missing to test the getOrDefault fallback
+
+        // 4. Mock Repository Calls
+        when(userRepository.findAll()).thenReturn(mockUsers);
+        when(studentProfileRepository.findAllById(any())).thenReturn(List.of(profile1));
+        when(pointHistoryRepository.sumPointsByUserIdsBulk(any())).thenReturn(mockBulkScores);
+
+        // 5. Execute
+        List<UserResponse> responses = userService.getAllUsers();
+
+        // 6. Verify
+        assertEquals(2, responses.size());
+
+        // Verify User 1 mapping
+        UserResponse res1 = responses.stream().filter(r -> r.getId().equals(user1Id)).findFirst().get();
+        assertEquals("Gold", res1.getCurrentLeagueTier());
+        assertEquals(500, res1.getTotalScore());
+
+        // Verify User 2 fallback mapping
+        UserResponse res2 = responses.stream().filter(r -> r.getId().equals(user2Id)).findFirst().get();
+        assertEquals("Bronze", res2.getCurrentLeagueTier());
+        assertEquals(0, res2.getTotalScore());
+    }
+
+    @Test
+    void deleteUserById_ShouldNotDeleteProfile_WhenUserIsAdmin() {
+        UUID adminId = UUID.randomUUID();
+        User adminUser = User.builder()
+                .id(adminId)
+                .role(Role.ROLE_ADMIN) // Not a student!
+                .build();
+
+        when(userRepository.findById(adminId)).thenReturn(Optional.of(adminUser));
+
+        userService.deleteUserById(adminId);
+
+        // Verify that we deleted the user...
+        verify(userRepository, times(1)).delete(adminUser);
+
+        // ...but we NEVER tried to delete a student profile! (This covers the false branch)
+        verify(studentProfileRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void getUserById_ShouldReturnBronze_WhenProfileExistsButTierIsNull() {
+        UUID userId = UUID.randomUUID();
+        User mockUser = User.builder()
+                .id(userId)
+                .username("testuser")
+                .role(Role.ROLE_STUDENT)
+                .build();
+
+        // The missing branch condition: Profile is NOT null, but Tier IS null
+        StudentProfile mockProfileWithNullTier = StudentProfile.builder()
+                .user(mockUser)
+                .currentLeagueTier(null)
+                .build();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+        when(studentProfileRepository.findById(userId)).thenReturn(Optional.of(mockProfileWithNullTier));
+        when(pointHistoryRepository.sumPointsByUserId(userId.toString())).thenReturn(0.0);
+
+        UserResponse response = userService.getUserById(userId);
+
+        assertEquals("Bronze", response.getCurrentLeagueTier());
     }
 }
