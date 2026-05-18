@@ -55,25 +55,53 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserResponse> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(user -> {
-                    // Fetch profile for the league tier (if it exists)
-                    StudentProfile profile = studentProfileRepository.findById(user.getId()).orElse(null);
-                    // Fetch dynamic score from the point history ledger
-                    double totalUserScore = pointHistoryRepository.sumPointsByUserId(user.getId().toString());
+        // Fetch all users (Query 1)
+        List<User> users = userRepository.findAll();
 
-                    return UserResponse.builder()
-                            .id(user.getId())
-                            .username(user.getUsername())
-                            .email(user.getEmail())
-                            .phoneNumber(user.getPhoneNumber())
-                            .displayName(user.getDisplayName())
-                            .role(user.getRole())
-                            .totalScore(Math.round(totalUserScore))
-                            .currentLeagueTier(profile != null && profile.getCurrentLeagueTier() != null ? profile.getCurrentLeagueTier() : "Bronze")
-                            .build();
-                })
-                .collect(Collectors.toList());
+        if (users.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        // Extract IDs for our IN clauses
+        List<UUID> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+        List<String> userIdStrings = userIds.stream().map(UUID::toString).collect(Collectors.toList());
+
+        // Batch fetch profiles (Query 2)
+        // Convert to a Map for O(1) lookup in memory
+        java.util.Map<UUID, StudentProfile> profileMap = studentProfileRepository.findAllById(userIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        profile -> profile.getUser().getId(),
+                        profile -> profile
+                ));
+
+        // Batch fetch scores (Query 3)
+        // Convert to a Map for O(1) lookup in memory
+        java.util.Map<String, Double> scoreMap = new java.util.HashMap<>();
+        List<Object[]> bulkScores = pointHistoryRepository.sumPointsByUserIdsBulk(userIdStrings);
+        for (Object[] result : bulkScores) {
+            String uid = (String) result[0];
+            Double score = result[1] != null ? ((Number) result[1]).doubleValue() : 0.0;
+            scoreMap.put(uid, score);
+        }
+
+        // Assemble the final response without touching the database inside the loop
+        return users.stream().map(user -> {
+            StudentProfile profile = profileMap.get(user.getId());
+            double totalUserScore = scoreMap.getOrDefault(user.getId().toString(), 0.0);
+
+            return UserResponse.builder()
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .phoneNumber(user.getPhoneNumber())
+                    .displayName(user.getDisplayName())
+                    .role(user.getRole())
+                    .totalScore(Math.round(totalUserScore))
+                    .currentLeagueTier(profile != null && profile.getCurrentLeagueTier() != null
+                            ? profile.getCurrentLeagueTier() : "Bronze")
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     @Override

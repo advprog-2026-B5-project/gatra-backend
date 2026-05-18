@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -25,4 +26,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, UUID
 
     @Query("SELECT COALESCE(SUM(p.points), 0.0) FROM PointHistory p WHERE p.userId = :userId")
     double sumPointsByUserId(@Param("userId") String userId);
+
+    @Query("SELECT p.userId, SUM(p.points) FROM PointHistory p WHERE p.userId IN :userIds GROUP BY p.userId")
+    List<Object[]> sumPointsByUserIdsBulk(@Param("userIds") List<String> userIds);
 }
