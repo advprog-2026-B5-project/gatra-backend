@@ -6,7 +6,7 @@ import id.ac.ui.cs.advprog.gatra.auth.dto.RegisterRequest;
 import id.ac.ui.cs.advprog.gatra.auth.model.AuthProvider;
 import id.ac.ui.cs.advprog.gatra.auth.model.Role;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
-import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
+import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.scoring.service;
 
-import id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository;
+import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

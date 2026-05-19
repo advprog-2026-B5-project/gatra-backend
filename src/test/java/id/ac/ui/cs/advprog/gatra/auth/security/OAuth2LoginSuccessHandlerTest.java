@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.auth.security;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
+import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,7 +28,7 @@ class OAuth2LoginSuccessHandlerTest {
     private UserRepository userRepository;
 
     @Mock
-    private id.ac.ui.cs.advprog.gatra.repository.StudentProfileRepository studentProfileRepository;
+    private StudentProfileRepository studentProfileRepository;
 
     @Mock
     private JwtUtil jwtUtil;
