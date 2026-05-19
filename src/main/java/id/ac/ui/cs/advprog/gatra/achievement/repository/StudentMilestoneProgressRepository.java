@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface StudentMilestoneProgressRepository extends JpaRepository<StudentMilestoneProgress, UUID> {
     Optional<StudentMilestoneProgress> findByUserIdAndActionType(UUID userId, ActionType actionType);
+    void deleteByUserId(UUID userId);
 }

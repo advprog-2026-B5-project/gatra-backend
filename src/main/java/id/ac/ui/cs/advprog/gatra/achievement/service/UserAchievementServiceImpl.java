@@ -6,7 +6,6 @@ import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
-import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
 import id.ac.ui.cs.advprog.gatra.achievement.strategy.DisplayAchievementStrategy;
 import id.ac.ui.cs.advprog.gatra.achievement.strategy.HideAchievementStrategy;
@@ -34,14 +33,16 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
     @Override
     public List<AchievementResponse> getMyAchievements(String username) {
-        return userAchievementRepository.findByUserUsername(username).stream()
+        UUID userId = userService.getUserEntityByUsername(username).getId();
+        return userAchievementRepository.findByUserId(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<AchievementResponse> getDisplayedAchievements(String username) {
-        return userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username).stream()
+        UUID userId = userService.getUserEntityByUsername(username).getId();
+        return userAchievementRepository.findByUserIdAndIsDisplayedTrue(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
                 .limit(MAX_DISPLAYED_ACHIEVEMENTS)
                 .collect(Collectors.toList());
@@ -58,8 +59,9 @@ public class UserAchievementServiceImpl implements UserAchievementService {
     }
 
     private UserAchievement findUserAchievementOrThrow(String username, UUID achievementId) {
+        UUID userId = userService.getUserEntityByUsername(username).getId();
         return userAchievementRepository
-                .findByUserUsernameAndAchievementId(username, achievementId)
+                .findByUserIdAndAchievementId(userId, achievementId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserAchievement", achievementId));
     }
 
@@ -71,10 +73,9 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
         if (alreadyUnlocked) return false;
 
-        User user = userService.getUserEntityById(userId);
-
+        // SECURE FIX: We only save the UUID now, completely decoupling the User entity!
         UserAchievement userAchievement = UserAchievement.builder()
-                .user(user)
+                .userId(userId)
                 .achievement(achievement)
                 .isDisplayed(false)
                 .build();

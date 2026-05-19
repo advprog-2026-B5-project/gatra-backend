@@ -11,8 +11,9 @@ public class ShowAchievementStrategy implements DisplayAchievementStrategy {
 
     @Override
     public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
-        long currentCount = repository.countByUserUsernameAndIsDisplayedTrue(
-                userAchievement.getUser().getUsername()
+
+        long currentCount = repository.countByUserIdAndIsDisplayedTrue(
+                userAchievement.getUserId()
         );
 
         if (currentCount >= MAX_DISPLAYED) {
@@ -20,6 +21,7 @@ public class ShowAchievementStrategy implements DisplayAchievementStrategy {
                     "Maksimal " + MAX_DISPLAYED + " achievement yang bisa ditampilkan di profil"
             );
         }
+
         userAchievement.setDisplayed(true);
         repository.save(userAchievement);
     }

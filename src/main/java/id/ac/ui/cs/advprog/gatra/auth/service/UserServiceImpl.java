@@ -11,6 +11,8 @@ import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import id.ac.ui.cs.advprog.gatra.auth.event.UserDeletedEvent;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -33,6 +36,9 @@ public class UserServiceImpl implements UserService {
         if (user.getRole() == Role.ROLE_STUDENT) {
             studentProfileRepository.deleteById(userId);
         }
+
+        eventPublisher.publishEvent(new UserDeletedEvent(userId));
+
         userRepository.delete(user);
     }
 
