@@ -1,15 +1,11 @@
 package id.ac.ui.cs.advprog.gatra.auth.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -42,8 +38,4 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
-    private Set<UserAchievement> userAchievements = new HashSet<>();
 }

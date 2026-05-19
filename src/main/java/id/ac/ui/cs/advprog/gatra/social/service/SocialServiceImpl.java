@@ -62,8 +62,9 @@ public class SocialServiceImpl implements SocialService {
         double totalScore = pointHistoryRepository.sumPointsByUserId(user.getId().toString());
 
         // 3. Fetch Featured Achievements (Max 3, explicitly mapped)
+        // REFACTOR FIX: We now use the soft-referenced UUID (user.getId()) instead of username
         List<AchievementResponse> featuredAchievements = userAchievementRepository
-                .findByUserUsernameAndIsDisplayedTrue(username)
+                .findByUserIdAndIsDisplayedTrue(user.getId())
                 .stream()
                 .limit(3)
                 .map(achievementMapper::toResponseFromUserAchievement)

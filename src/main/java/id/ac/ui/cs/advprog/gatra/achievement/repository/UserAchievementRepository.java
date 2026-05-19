@@ -10,9 +10,10 @@ import java.util.List;
 
 @Repository
 public interface UserAchievementRepository extends JpaRepository<UserAchievement, UUID> {
-    List<UserAchievement> findByUserUsername(String username);
-    List<UserAchievement> findByUserUsernameAndIsDisplayedTrue(String username);
-    Optional<UserAchievement> findByUserUsernameAndAchievementId(String username, UUID achievementId);
-    long countByUserUsernameAndIsDisplayedTrue(String username);
+    List<UserAchievement> findByUserId(UUID userId);
+    List<UserAchievement> findByUserIdAndIsDisplayedTrue(UUID userId);
+    Optional<UserAchievement> findByUserIdAndAchievementId(UUID userId, UUID achievementId);
+    long countByUserIdAndIsDisplayedTrue(UUID userId);
     boolean existsByUserIdAndAchievementId(UUID userId, UUID achievementId);
+    void deleteByUserId(UUID userId);
 }

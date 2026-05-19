@@ -2,7 +2,6 @@ package id.ac.ui.cs.advprog.gatra.auth.security;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.Role;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
-import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -58,5 +57,40 @@ class JwtUtilTest {
 
         // 3. Masukkan UserDetails ke dalam validasi
         assertTrue(jwtUtil.isTokenValid(token, userDetails));
+    }
+
+    @Test
+    void testExtractUserId_Success() {
+        String token = jwtUtil.generateToken(mockUser);
+        String extractedUserId = jwtUtil.extractUserId(token);
+
+        assertEquals(mockUser.getId().toString(), extractedUserId);
+    }
+
+    @Test
+    void testIsTokenValid_WrongUser_ReturnsFalse() {
+        String token = jwtUtil.generateToken(mockUser);
+
+        // Buat detail user yang berbeda nama dengan token
+        org.springframework.security.core.userdetails.UserDetails wrongUser =
+                org.springframework.security.core.userdetails.User.builder()
+                        .username("bukan_anya")
+                        .password("password")
+                        .authorities("ROLE_STUDENT")
+                        .build();
+
+        assertFalse(jwtUtil.isTokenValid(token, wrongUser));
+    }
+
+    @Test
+    void testExtractRole_Success() {
+
+        String token = jwtUtil.generateToken(mockUser);
+
+        // 2. Panggil method yang ingin diuji
+        String extractedRole = jwtUtil.extractRole(token);
+
+        // 3. Pastikan role yang diekstrak sesuai dengan role milik mockUser
+        assertEquals("ROLE_STUDENT", extractedRole);
     }
 }
