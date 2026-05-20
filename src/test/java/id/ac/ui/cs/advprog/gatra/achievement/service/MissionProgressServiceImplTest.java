@@ -2,8 +2,8 @@ package id.ac.ui.cs.advprog.gatra.achievement.service;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
-import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.event.MissionRewardClaimedEvent;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
 import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
@@ -12,14 +12,16 @@ import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.MissionProgressMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
-import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,8 +37,7 @@ class MissionProgressServiceImplTest {
     @Mock private UserMissionProgressRepository progressRepository;
     @Mock private UserService userService;
     @Mock private MissionProgressMapper progressMapper;
-    @Mock private ClanMembershipRepository clanMembershipRepository;
-    @Mock private PointRecordingService pointRecordingService;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private MissionProgressServiceImpl missionProgressService;
@@ -62,6 +63,7 @@ class MissionProgressServiceImplTest {
                 .title("Baca Artikel")
                 .actionType(ActionType.READ_ARTICLE)
                 .targetCount(3)
+                .rewardPoints(100)
                 .status(MissionStatus.ACTIVE)
                 .build();
 
@@ -82,8 +84,10 @@ class MissionProgressServiceImplTest {
                 .build();
     }
 
+    // ========== getActiveMissionsWithProgress ==========
+
     @Test
-    void getActiveMissionsWithProgress_shouldReturnMissions() {
+    void getActiveMissionsWithProgress_shouldReturnMissionsWithProgress() {
         when(userService.getUserEntityByUsername(username)).thenReturn(user);
         when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
         when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
@@ -95,7 +99,36 @@ class MissionProgressServiceImplTest {
         assertEquals(1, result.size());
         assertEquals(1, result.get(0).getCurrentCount());
         verify(userService).getUserEntityByUsername(username);
+        verify(dailyMissionRepository).findByStatus(MissionStatus.ACTIVE);
+        verify(progressRepository).findByUserIdAndMissionId(userId, missionId);
     }
+
+    @Test
+    void getActiveMissionsWithProgress_whenNoProgress_shouldReturnMissionsWithNullProgress() {
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.empty());
+        when(progressMapper.toResponse(mission, null)).thenReturn(responseDto);
+
+        List<MissionProgressResponse> result = missionProgressService.getActiveMissionsWithProgress(username);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        verify(progressMapper).toResponse(mission, null);
+    }
+
+    @Test
+    void getActiveMissionsWithProgress_whenNoActiveMissions_shouldReturnEmptyList() {
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(Collections.emptyList());
+
+        List<MissionProgressResponse> result = missionProgressService.getActiveMissionsWithProgress(username);
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    // ========== incrementProgress ==========
 
     @Test
     void incrementProgress_shouldIncrementCount() {
@@ -129,7 +162,80 @@ class MissionProgressServiceImplTest {
     }
 
     @Test
-    void claimReward_whenCompleted_shouldSetClaimed() {
+    void incrementProgress_shouldAddToList_whenMissionJustCompleted() {
+        mission.setTargetCount(3);
+        progress.setCurrentCount(2);
+
+        MissionProgressResponse completedResponse = MissionProgressResponse.builder()
+                .missionId(missionId)
+                .title("Baca Artikel")
+                .currentCount(3)
+                .targetCount(3)
+                .isCompleted(true)
+                .build();
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId))
+                .thenReturn(Optional.of(progress));
+        when(progressMapper.toResponse(mission, progress)).thenReturn(completedResponse);
+
+        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
+
+        assertFalse(result.isEmpty());
+        assertEquals(1, result.size());
+        assertEquals(3, result.get(0).getCurrentCount());
+        assertTrue(result.get(0).getIsCompleted());
+        verify(progressRepository).save(progress);
+        verify(progressMapper).toResponse(mission, progress);
+    }
+
+    @Test
+    void incrementProgress_whenProgressAlreadyCompleted_shouldNotIncrement() {
+        progress.setCurrentCount(3);
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
+
+        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
+
+        assertTrue(result.isEmpty());
+        assertEquals(3, progress.getCurrentCount());
+        verify(progressRepository, never()).save(any());
+    }
+
+    @Test
+    void incrementProgress_whenNoMatchingMissions_shouldReturnEmpty() {
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+
+        // mission has READ_ARTICLE but we pass FINISH_QUIZ
+        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "FINISH_QUIZ");
+
+        assertTrue(result.isEmpty());
+        verify(progressRepository, never()).save(any());
+    }
+
+    @Test
+    void incrementProgress_incrementsButNotYetCompleted_shouldNotAddToList() {
+        progress.setCurrentCount(0);
+        mission.setTargetCount(3);
+
+        when(userService.getUserEntityById(userId)).thenReturn(user);
+        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
+
+        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
+
+        assertTrue(result.isEmpty());
+        assertEquals(1, progress.getCurrentCount());
+        verify(progressRepository).save(progress);
+        verify(progressMapper, never()).toResponse(any(), any());
+    }
+
+    // ========== claimReward ==========
+
+    @Test
+    void claimReward_whenCompleted_shouldSetClaimedAndPublishEvent() {
         progress.setCurrentCount(3);
         MissionProgressResponse claimedResponse = MissionProgressResponse.builder()
                 .missionId(missionId).isClaimed(true).build();
@@ -142,7 +248,36 @@ class MissionProgressServiceImplTest {
         MissionProgressResponse result = missionProgressService.claimReward(username, missionId);
 
         assertTrue(result.getIsClaimed());
+        assertTrue(progress.getIsClaimed());
         verify(progressRepository).save(progress);
+
+        ArgumentCaptor<MissionRewardClaimedEvent> eventCaptor = ArgumentCaptor.forClass(MissionRewardClaimedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+
+        MissionRewardClaimedEvent publishedEvent = eventCaptor.getValue();
+        assertEquals(userId, publishedEvent.userId());
+        assertEquals(missionId, publishedEvent.missionId());
+        assertEquals(100, publishedEvent.rewardPoints());
+    }
+
+    @Test
+    void claimReward_whenRewardPointsNull_shouldPublishEventWithZero() {
+        progress.setCurrentCount(3);
+        mission.setRewardPoints(null);
+
+        MissionProgressResponse claimedResponse = MissionProgressResponse.builder()
+                .missionId(missionId).isClaimed(true).build();
+
+        when(userService.getUserEntityByUsername(username)).thenReturn(user);
+        when(dailyMissionRepository.findById(missionId)).thenReturn(Optional.of(mission));
+        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
+        when(progressMapper.toResponse(mission, progress)).thenReturn(claimedResponse);
+
+        missionProgressService.claimReward(username, missionId);
+
+        ArgumentCaptor<MissionRewardClaimedEvent> eventCaptor = ArgumentCaptor.forClass(MissionRewardClaimedEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertEquals(0, eventCaptor.getValue().rewardPoints());
     }
 
     @Test
@@ -153,6 +288,7 @@ class MissionProgressServiceImplTest {
 
         assertThrows(IllegalArgumentException.class,
             () -> missionProgressService.claimReward(username, missionId));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -166,6 +302,7 @@ class MissionProgressServiceImplTest {
 
         assertThrows(IllegalArgumentException.class,
             () -> missionProgressService.claimReward(username, missionId));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -176,79 +313,9 @@ class MissionProgressServiceImplTest {
 
         assertThrows(IllegalArgumentException.class,
             () -> missionProgressService.claimReward(username, missionId));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
-    @Test
-    void incrementProgress_shouldAddToList_WhenMissionJustCompleted() {
-        mission.setTargetCount(3);
-        progress.setCurrentCount(2);
-
-        MissionProgressResponse completedResponse = MissionProgressResponse.builder()
-                .missionId(missionId)
-                .title("baca artikel")
-                .currentCount(3)
-                .targetCount(3)
-                .isCompleted(true)
-                .build();
-        when(userService.getUserEntityById(userId)).thenReturn(user);
-        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
-        when(progressRepository.findByUserIdAndMissionId(userId, missionId))
-                .thenReturn(Optional.of(progress));
-
-        when(progressMapper.toResponse(mission, progress)).thenReturn(completedResponse);
-
-        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size());
-        assertEquals(3, result.get(0).getCurrentCount());
-        assertTrue(result.get(0).getIsCompleted());
-
-        verify(progressRepository).save(progress);
-        verify(progressMapper).toResponse(mission, progress);
-    }
-
-    @Test
-    void getActiveMissionsWithProgress_whenProgressEmpty_shouldReturnMissions() {
-        when(userService.getUserEntityByUsername(username)).thenReturn(user);
-        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
-        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.empty());
-        when(progressMapper.toResponse(mission, null)).thenReturn(responseDto);
-
-        List<MissionProgressResponse> result = missionProgressService.getActiveMissionsWithProgress(username);
-
-        assertNotNull(result);
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    void claimReward_whenClanMembershipExistsAndRewardPointsGTZero_shouldRecordPoints() {
-        progress.setCurrentCount(3);
-        mission.setRewardPoints(100);
-        
-        MissionProgressResponse claimedResponse = MissionProgressResponse.builder()
-                .missionId(missionId).isClaimed(true).build();
-
-        when(userService.getUserEntityByUsername(username)).thenReturn(user);
-        when(dailyMissionRepository.findById(missionId)).thenReturn(Optional.of(mission));
-        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
-        
-        id.ac.ui.cs.advprog.gatra.clan.model.Clan clan = new id.ac.ui.cs.advprog.gatra.clan.model.Clan();
-        clan.setId(UUID.randomUUID().toString());
-        id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership membership = id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership.builder()
-                .clan(clan)
-                .build();
-        when(clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus.APPROVED))
-                .thenReturn(Optional.of(membership));
-                
-        when(progressMapper.toResponse(mission, progress)).thenReturn(claimedResponse);
-
-        MissionProgressResponse result = missionProgressService.claimReward(username, missionId);
-
-        assertTrue(result.getIsClaimed());
-        verify(pointRecordingService).recordPoints(eq(userId.toString()), eq(clan.getId()), eq(100.0), eq(id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType.DAILY_MISSION_COMPLETED), eq(missionId.toString()));
-    }
-    
     @Test
     void claimReward_whenMissionNotFound_shouldThrow() {
         when(userService.getUserEntityByUsername(username)).thenReturn(user);
@@ -256,18 +323,6 @@ class MissionProgressServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class,
             () -> missionProgressService.claimReward(username, missionId));
-    }
-
-    @Test
-    void incrementProgress_whenProgressAlreadyCompleted_shouldNotIncrement() {
-        progress.setCurrentCount(3);
-        when(userService.getUserEntityById(userId)).thenReturn(user);
-        when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
-        when(progressRepository.findByUserIdAndMissionId(userId, missionId)).thenReturn(Optional.of(progress));
-
-        List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "READ_ARTICLE");
-
-        assertTrue(result.isEmpty());
-        verify(progressRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }
