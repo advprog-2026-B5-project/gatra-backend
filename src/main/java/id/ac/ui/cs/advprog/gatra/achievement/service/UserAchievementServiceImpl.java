@@ -1,13 +1,15 @@
 package id.ac.ui.cs.advprog.gatra.achievement.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
-import id.ac.ui.cs.advprog.gatra.service.strategy.DisplayAchievementStrategy;
-import id.ac.ui.cs.advprog.gatra.service.strategy.HideAchievementStrategy;
-import id.ac.ui.cs.advprog.gatra.service.strategy.ShowAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
+import id.ac.ui.cs.advprog.gatra.achievement.strategy.DisplayAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.achievement.strategy.HideAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.achievement.strategy.ShowAchievementStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
     private static final int MAX_DISPLAYED_ACHIEVEMENTS = 3;
 
     private final UserAchievementRepository userAchievementRepository;
+    private final UserService userService;
     private final AchievementMapper achievementMapper;
 
     private final ShowAchievementStrategy showStrategy;
@@ -30,14 +33,16 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
     @Override
     public List<AchievementResponse> getMyAchievements(String username) {
-        return userAchievementRepository.findByUserUsername(username).stream()
+        UUID userId = userService.getUserEntityByUsername(username).getId();
+        return userAchievementRepository.findByUserId(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<AchievementResponse> getDisplayedAchievements(String username) {
-        return userAchievementRepository.findByUserUsernameAndIsDisplayedTrue(username).stream()
+        UUID userId = userService.getUserEntityByUsername(username).getId();
+        return userAchievementRepository.findByUserIdAndIsDisplayedTrue(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
                 .limit(MAX_DISPLAYED_ACHIEVEMENTS)
                 .collect(Collectors.toList());
@@ -54,8 +59,28 @@ public class UserAchievementServiceImpl implements UserAchievementService {
     }
 
     private UserAchievement findUserAchievementOrThrow(String username, UUID achievementId) {
+        UUID userId = userService.getUserEntityByUsername(username).getId();
         return userAchievementRepository
-                .findByUserUsernameAndAchievementId(username, achievementId)
+                .findByUserIdAndAchievementId(userId, achievementId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserAchievement", achievementId));
+    }
+
+    @Override
+    @Transactional
+    public boolean unlockIfNotYet(UUID userId, Achievement achievement) {
+        boolean alreadyUnlocked = userAchievementRepository
+                .existsByUserIdAndAchievementId(userId, achievement.getId());
+
+        if (alreadyUnlocked) return false;
+
+        // SECURE FIX: We only save the UUID now, completely decoupling the User entity!
+        UserAchievement userAchievement = UserAchievement.builder()
+                .userId(userId)
+                .achievement(achievement)
+                .isDisplayed(false)
+                .build();
+
+        userAchievementRepository.save(userAchievement);
+        return true;
     }
 }

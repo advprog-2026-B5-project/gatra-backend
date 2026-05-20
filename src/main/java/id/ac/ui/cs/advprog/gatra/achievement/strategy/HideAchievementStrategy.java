@@ -1,0 +1,15 @@
+package id.ac.ui.cs.advprog.gatra.achievement.strategy;
+
+import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
+import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
+import org.springframework.stereotype.Component;
+
+@Component
+public class HideAchievementStrategy implements DisplayAchievementStrategy {
+
+    @Override
+    public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
+        userAchievement.setDisplayed(false);
+        repository.save(userAchievement);
+    }
+}

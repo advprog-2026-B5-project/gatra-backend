@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.achievement.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import id.ac.ui.cs.advprog.gatra.model.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -18,10 +17,8 @@ public class UserAchievement {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "achievement_id", nullable = false)

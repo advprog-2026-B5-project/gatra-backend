@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.config;
 
-import id.ac.ui.cs.advprog.gatra.security.JwtAuthenticationFilter;
-import id.ac.ui.cs.advprog.gatra.security.OAuth2LoginSuccessHandler;
+import id.ac.ui.cs.advprog.gatra.auth.security.JwtAuthenticationFilter;
+import id.ac.ui.cs.advprog.gatra.auth.security.OAuth2LoginSuccessHandler;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,11 +40,16 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/achievements/*/display").hasAnyRole("STUDENT", "USER")
                         .requestMatchers("/api/achievements/me", "/api/achievements/me/**").authenticated()
                         .requestMatchers("/api/missions/**").authenticated()
                         .requestMatchers("/api/achievements/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/clans").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/clans/{id}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/clans/season/end").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/clans/season/last").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

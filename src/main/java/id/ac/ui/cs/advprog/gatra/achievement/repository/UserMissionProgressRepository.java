@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface UserMissionProgressRepository extends JpaRepository<UserMissionProgress, UUID> {
     List<UserMissionProgress> findByUserId(UUID userId);
     Optional<UserMissionProgress> findByUserIdAndMissionId(UUID userId, UUID missionId);
+    void deleteByUserId(UUID userId);
 }

@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.achievement.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,5 +18,6 @@ public class AchievementResponse {
     private String description;
     private String badgeUrl;
     private String unlockedAt;
+    @JsonProperty("isDisplayed")
     private boolean isDisplayed;
 }
