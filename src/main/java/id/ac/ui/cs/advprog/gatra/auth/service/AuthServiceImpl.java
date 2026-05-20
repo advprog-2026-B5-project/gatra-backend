@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -25,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final StudentProfileRepository studentProfileRepository;
     private final PasswordEncoder passwordEncoder; // Untuk enkripsi password
     private final JwtUtil jwtUtil;
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public AuthResponse registerStudent(RegisterRequest request) {
@@ -62,6 +65,9 @@ public class AuthServiceImpl implements AuthService {
         studentProfileRepository.save(newProfile);
 
         String jwtToken = jwtUtil.generateToken(savedUser);
+
+        meterRegistry.counter("gatra.auth.registered.users",
+                "role", "student").increment();
 
         // Response ke Frontend
         return AuthResponse.builder()
