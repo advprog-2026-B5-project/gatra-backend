@@ -10,7 +10,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TrueFalseQuestion extends Question {
-    private String correctAnswer;
 
     @Override
     public void applyCreate(CreateQuestionRequest request){

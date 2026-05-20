@@ -113,11 +113,6 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     }
 
     private boolean checkAnswer(Question question, String userAnswer) {
-        if (question instanceof MultipleChoiceQuestion mcq) {
-            return mcq.getCorrectAnswer().equalsIgnoreCase(userAnswer);
-        } else if (question instanceof TrueFalseQuestion tfq) {
-            return tfq.getCorrectAnswer().equalsIgnoreCase(userAnswer);
-        }
-        return false;
+        return question.checkAnswer(question.getCorrectAnswer());
     }
 }
