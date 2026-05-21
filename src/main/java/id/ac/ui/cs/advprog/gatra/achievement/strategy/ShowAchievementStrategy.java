@@ -2,17 +2,21 @@ package id.ac.ui.cs.advprog.gatra.achievement.strategy;
 
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ShowAchievementStrategy implements DisplayAchievementStrategy {
 
     private static final int MAX_DISPLAYED = 3;
 
-    @Override
-    public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
+    private final UserAchievementRepository userAchievementRepository;
 
-        long currentCount = repository.countByUserIdAndIsDisplayedTrue(
+    @Override
+    public void execute(UserAchievement userAchievement) {
+
+        long currentCount = userAchievementRepository.countByUserIdAndIsDisplayedTrue(
                 userAchievement.getUserId()
         );
 
@@ -23,6 +27,6 @@ public class ShowAchievementStrategy implements DisplayAchievementStrategy {
         }
 
         userAchievement.setDisplayed(true);
-        repository.save(userAchievement);
+        userAchievementRepository.save(userAchievement);
     }
-}
+}

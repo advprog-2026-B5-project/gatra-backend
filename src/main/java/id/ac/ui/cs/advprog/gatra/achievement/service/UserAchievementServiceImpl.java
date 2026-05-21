@@ -8,9 +8,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
 import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
 import id.ac.ui.cs.advprog.gatra.achievement.strategy.DisplayAchievementStrategy;
-import id.ac.ui.cs.advprog.gatra.achievement.strategy.HideAchievementStrategy;
-import id.ac.ui.cs.advprog.gatra.achievement.strategy.ShowAchievementStrategy;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +17,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class UserAchievementServiceImpl implements UserAchievementService {
 
     private static final int MAX_DISPLAYED_ACHIEVEMENTS = 3;
@@ -28,8 +25,21 @@ public class UserAchievementServiceImpl implements UserAchievementService {
     private final UserService userService;
     private final AchievementMapper achievementMapper;
 
-    private final ShowAchievementStrategy showStrategy;
-    private final HideAchievementStrategy hideStrategy;
+    private final DisplayAchievementStrategy showStrategy;
+    private final DisplayAchievementStrategy hideStrategy;
+
+    public UserAchievementServiceImpl(
+            UserAchievementRepository userAchievementRepository,
+            UserService userService,
+            AchievementMapper achievementMapper,
+            @Qualifier("showAchievementStrategy") DisplayAchievementStrategy showStrategy,
+            @Qualifier("hideAchievementStrategy") DisplayAchievementStrategy hideStrategy) {
+        this.userAchievementRepository = userAchievementRepository;
+        this.userService = userService;
+        this.achievementMapper = achievementMapper;
+        this.showStrategy = showStrategy;
+        this.hideStrategy = hideStrategy;
+    }
 
     @Override
     public List<AchievementResponse> getMyAchievements(String username) {
@@ -55,7 +65,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
         DisplayAchievementStrategy strategy = displayed ? showStrategy : hideStrategy;
 
-        strategy.execute(userAchievement, userAchievementRepository);
+        strategy.execute(userAchievement);
     }
 
     private UserAchievement findUserAchievementOrThrow(String username, UUID achievementId) {

@@ -16,7 +16,7 @@ import static org.mockito.Mockito.*;
 class HideAchievementStrategyTest {
 
     @Mock
-    private UserAchievementRepository repository;
+    private UserAchievementRepository userAchievementRepository;
 
     @InjectMocks
     private HideAchievementStrategy strategy;
@@ -31,11 +31,11 @@ class HideAchievementStrategyTest {
 
     @Test
     void execute_setsDisplayedToFalseAndSaves() {
-        when(repository.save(userAchievement)).thenReturn(userAchievement);
+        when(userAchievementRepository.save(userAchievement)).thenReturn(userAchievement);
 
-        strategy.execute(userAchievement, repository);
+        strategy.execute(userAchievement);
 
         assertFalse(userAchievement.isDisplayed());
-        verify(repository, times(1)).save(userAchievement);
+        verify(userAchievementRepository, times(1)).save(userAchievement);
     }
-}
+}
