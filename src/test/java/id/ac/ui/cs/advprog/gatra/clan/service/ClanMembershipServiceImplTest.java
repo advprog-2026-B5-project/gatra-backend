@@ -127,8 +127,12 @@ class ClanMembershipServiceImplTest {
     void decideMembership_leaderValidationFails() {
         ClanMembership notLeader = ClanMembership.builder().role(ClanRole.MEMBER).build();
         when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(notLeader));
-        
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(clanId, userId, new MembershipDecisionRequest(), leaderId));
+
+        MembershipDecisionRequest request = new MembershipDecisionRequest();
+
+        assertThrows(RuntimeException.class, () ->
+                membershipService.decideMembership(clanId, userId, request, leaderId)
+        );
     }
 
     @Test
@@ -136,8 +140,12 @@ class ClanMembershipServiceImplTest {
         ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
         when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(leaderMembership));
         when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.empty());
-        
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(clanId, userId, new MembershipDecisionRequest(), leaderId));
+
+        MembershipDecisionRequest request = new MembershipDecisionRequest();
+
+        assertThrows(RuntimeException.class, () ->
+                membershipService.decideMembership(clanId, userId, request, leaderId)
+        );
     }
 
     @Test
