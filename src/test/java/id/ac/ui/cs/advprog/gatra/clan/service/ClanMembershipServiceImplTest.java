@@ -40,9 +40,7 @@ class ClanMembershipServiceImplTest {
         when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(false);
         when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(false);
         when(clanRepository.getReferenceById(clanId)).thenReturn(dummyClan);
-        
-        ClanMembership mockSaved = ClanMembership.builder().id("mem-1").clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).role(ClanRole.MEMBER).build();
-        
+
         when(membershipRepository.save(any(ClanMembership.class))).thenAnswer(i -> {
             ClanMembership m = i.getArgument(0);
             m.setId("mem-1");
