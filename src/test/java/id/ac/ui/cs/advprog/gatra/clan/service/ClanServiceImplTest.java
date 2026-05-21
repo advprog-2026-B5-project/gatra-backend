@@ -1,12 +1,10 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
-
+import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
-import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
-import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,8 +25,8 @@ class ClanServiceImplTest {
     @Mock private ClanRepository clanRepository;
     @Mock private ClanMembershipRepository membershipRepository;
     @Mock private UserRepository userRepository;
-    @Mock private ClanScoringService clanScoringService;
     @Mock private BuffDebuffService buffDebuffService;
+
 
     @InjectMocks private ClanServiceImpl clanService;
 
@@ -52,8 +50,7 @@ class ClanServiceImplTest {
         when(clanRepository.save(any(Clan.class))).thenReturn(dummyClan);
         when(membershipRepository.save(any(ClanMembership.class))).thenReturn(new ClanMembership());
         when(membershipRepository.countByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED))).thenReturn(1L);
-        when(buffDebuffService.getModifier(any())).thenReturn(new ScoreModifier("DUMMY", 1.0));
-        when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
 
         ClanResponse res = clanService.createClan(req, userId);
 
@@ -75,8 +72,7 @@ class ClanServiceImplTest {
     void getClan_success() {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
-        when(buffDebuffService.getModifier(clanId)).thenReturn(new ScoreModifier("DUMMY", 1.0));
-        when(clanScoringService.calculateClanScore(eq(clanId), any(), any())).thenReturn(200.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
 
         ClanResponse res = clanService.getClan(clanId);
 
@@ -101,7 +97,7 @@ class ClanServiceImplTest {
     void getMyClan_whenApproved() {
         ClanMembership membership = ClanMembership.builder().clan(dummyClan).userId(userId).role(ClanRole.LEADER).status(MembershipStatus.APPROVED).build();
         when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.of(membership));
-        when(clanScoringService.calculateClanScore(eq(clanId), any(), any())).thenReturn(100.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
         when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(List.of(membership));
         
         User dummyUser = new User();
@@ -161,8 +157,7 @@ class ClanServiceImplTest {
     void getAllClans_success() {
         when(clanRepository.findAll()).thenReturn(List.of(dummyClan));
         when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(1L);
-        when(buffDebuffService.getModifier(clanId)).thenReturn(new ScoreModifier("DUMMY", 1.0));
-        when(clanScoringService.calculateClanScore(eq(clanId), any(), any())).thenReturn(10.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
 
         List<ClanResponse> list = clanService.getAllClans();
         assertEquals(1, list.size());
