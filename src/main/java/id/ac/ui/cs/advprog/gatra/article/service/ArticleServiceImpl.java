@@ -7,6 +7,10 @@ import id.ac.ui.cs.advprog.gatra.article.mapper.ArticleMapper;
 import id.ac.ui.cs.advprog.gatra.article.model.Article;
 import id.ac.ui.cs.advprog.gatra.article.model.Category;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
+import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
+import id.ac.ui.cs.advprog.gatra.achievement.service.MilestoneService;
+import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressService;
+import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
@@ -26,6 +30,8 @@ public class ArticleServiceImpl implements ArticleService {
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final ArticleMapper articleMapper;
+    private final MilestoneService milestoneService;
+    private final MissionProgressService missionProgressService;
 
     @Override
     public List<ArticleResponse> getAllArticles() {
@@ -107,5 +113,14 @@ public class ArticleServiceImpl implements ArticleService {
     private User findUserOrThrow(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User", username));
+    }
+
+    @Override
+    public MilestoneResponse markAsRead(UUID articleId, String username) {
+        User user = findUserOrThrow(username);
+        var completedMissions = missionProgressService.incrementProgress(user.getId(), "READ_ARTICLE");
+        MilestoneResponse response = milestoneService.recordAction(user.getId(), ActionType.READ_ARTICLE);
+        response.setCompletedMissions(completedMissions);
+        return response;
     }
 }

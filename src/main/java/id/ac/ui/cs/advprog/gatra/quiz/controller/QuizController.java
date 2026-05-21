@@ -4,8 +4,11 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.*;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.service.QuizAttemptService;
 import id.ac.ui.cs.advprog.gatra.quiz.service.QuizService;
+import id.ac.ui.cs.advprog.gatra.quiz.mapper.QuestionMapper;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,27 +23,33 @@ public class QuizController {
 
     private final QuizService quizService;
     private final QuizAttemptService quizAttemptService;
+    private final QuestionMapper questionMapper;
 
     @PostMapping
-    public ResponseEntity<Question> createQuestion(
-            @RequestBody CreateQuestionRequest request
-    ) {
-        return ResponseEntity.ok(quizService.createQuestion(request));
+    public ResponseEntity<QuestionResponse> createQuestion(@RequestBody @Valid CreateQuestionRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(questionMapper.toResponse(quizService.createQuestion(request)));
     }
 
     @GetMapping
-    public ResponseEntity<List<Question>> getAllQuestions() {
-        return ResponseEntity.ok(quizService.getAllQuestions());
+    public ResponseEntity<List<QuestionResponse>> getAllQuestions() {
+        List<QuestionResponse> responses = quizService.getAllQuestions().stream()
+                .map(questionMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Question> getQuestionById(@PathVariable UUID id) {
-        return ResponseEntity.ok(quizService.getQuestionById(id));
+    public ResponseEntity<QuestionResponse> getQuestionById(@PathVariable UUID id) {
+        return ResponseEntity.ok(questionMapper.toResponse(quizService.getQuestionById(id)));
     }
 
     @GetMapping("/article/{articleId}")
-    public ResponseEntity<List<Question>> getQuestionsByArticle(@PathVariable UUID articleId) {
-        return ResponseEntity.ok(quizService.getQuestionsByArticle(articleId));
+    public ResponseEntity<List<QuestionResponse>> getQuestionsByArticle(@PathVariable UUID articleId) {
+        List<QuestionResponse> responses = quizService.getQuestionsByArticle(articleId).stream()
+                .map(questionMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @DeleteMapping("/{id}")
@@ -50,18 +59,16 @@ public class QuizController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(
+    public ResponseEntity<QuestionResponse> updateQuestion(
             @PathVariable UUID id,
-            @RequestBody UpdateQuestionRequest request
-    ) {
-        return ResponseEntity.ok(quizService.updateQuestion(id, request));
+            @RequestBody @Valid UpdateQuestionRequest request) {
+        return ResponseEntity.ok(questionMapper.toResponse(quizService.updateQuestion(id, request)));
     }
 
     @PatchMapping("/passing-score/{articleId}")
     public ResponseEntity<Void> setPassingScore(
             @PathVariable UUID articleId,
-            @RequestBody PassingScoreRequest request
-    ) {
+            @RequestBody @Valid PassingScoreRequest request) {
         quizService.setPassingScore(articleId, request.getPassingScore());
         return ResponseEntity.noContent().build();
     }

@@ -113,6 +113,7 @@ class QuizServiceImplTest {
 
     @Test
     void deleteQuestion_shouldCallRepositoryDelete() {
+        when(questionRepository.findById(questionId)).thenReturn(Optional.of(dummyQuestion));
         doNothing().when(questionRepository).deleteById(questionId);
 
         quizService.deleteQuestion(questionId);

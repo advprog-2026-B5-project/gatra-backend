@@ -18,8 +18,6 @@ public class MultipleChoiceQuestion extends Question {
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> options;
 
-    private String correctAnswer;
-
     @Override
     public void applyCreate(CreateQuestionRequest request){
         this.setText(request.getText());

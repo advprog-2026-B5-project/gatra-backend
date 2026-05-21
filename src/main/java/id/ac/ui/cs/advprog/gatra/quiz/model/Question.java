@@ -25,6 +25,11 @@ public abstract class Question {
     @JoinColumn(name = "article_id")
     private Article article;
 
+    private String correctAnswer;
+
     public abstract void applyCreate(CreateQuestionRequest request);
     public abstract void applyUpdate(UpdateQuestionRequest request);
+    public boolean checkAnswer(String userAnswer) {
+        return this.correctAnswer.equalsIgnoreCase(userAnswer);
+    }
 }
