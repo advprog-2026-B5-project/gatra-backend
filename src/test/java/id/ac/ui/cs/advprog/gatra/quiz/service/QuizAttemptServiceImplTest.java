@@ -139,11 +139,11 @@ class QuizAttemptServiceImplTest {
         
         verify(attemptRepository, times(1)).save(any(QuizAttempt.class));
         verify(pointRecordingService, times(1)).recordPoints(
-                eq(userId.toString()),
-                eq(dummyClan.getId()),
-                eq(100.0),
-                eq(PointActivityType.QUIZ_PASSED),
-                eq(articleId.toString())
+                userId.toString(),
+                dummyClan.getId(),
+                100.0,
+                PointActivityType.QUIZ_PASSED,
+                articleId.toString()
         );
     }
 
