@@ -19,6 +19,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DailyMissionServiceImpl implements DailyMissionService {
 
+    private static final int MAX_ACTIVE_MISSIONS = 3;
+
     private final DailyMissionRepository missionRepository;
     private final DailyMissionMapper missionMapper;
     private final UserMissionProgressRepository progressRepository;
@@ -70,7 +72,7 @@ public class DailyMissionServiceImpl implements DailyMissionService {
 
         java.util.Collections.shuffle(allMissions);
         allMissions.stream()
-            .limit(3)
+            .limit(MAX_ACTIVE_MISSIONS)
             .forEach(m -> m.setStatus(MissionStatus.ACTIVE));
 
         missionRepository.saveAll(allMissions);
