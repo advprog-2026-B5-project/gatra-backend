@@ -13,7 +13,6 @@ import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.MultipleChoiceQuestion;
-import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.model.QuizAttempt;
 import id.ac.ui.cs.advprog.gatra.quiz.model.TrueFalseQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
