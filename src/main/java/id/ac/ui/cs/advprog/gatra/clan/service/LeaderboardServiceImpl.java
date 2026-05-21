@@ -25,14 +25,14 @@ public class LeaderboardServiceImpl implements LeaderboardService {
     @Override
     public TierLeaderboardResponse getLeaderboardByTier(String tier) {
         List<Clan> clansInTier = clanRepository.findByTier(tier);
-        List<LeaderboardEntryResponse> rankings = buildRankings(clansInTier, tier);
+        List<LeaderboardEntryResponse> rankings = buildRankings(clansInTier);
         return TierLeaderboardResponse.builder()
                 .tier(tier)
                 .rankings(rankings)
                 .build();
     }
 
-    private List<LeaderboardEntryResponse> buildRankings(List<Clan> clans, String tier) {
+    private List<LeaderboardEntryResponse> buildRankings(List<Clan> clans) {
         List<LeaderboardEntryResponse> entries = clans.stream()
                 .map(this::toLeaderboardEntry)
                 .sorted(Comparator.comparingDouble(LeaderboardEntryResponse::getScore).reversed())

@@ -1,5 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
-import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
+
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
@@ -50,7 +50,7 @@ class ClanServiceImplTest {
         when(clanRepository.save(any(Clan.class))).thenReturn(dummyClan);
         when(membershipRepository.save(any(ClanMembership.class))).thenReturn(new ClanMembership());
         when(membershipRepository.countByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED))).thenReturn(1L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((cId, tier) -> 100.0);
 
         ClanResponse res = clanService.createClan(req, userId);
 
@@ -72,7 +72,7 @@ class ClanServiceImplTest {
     void getClan_success() {
         when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
         when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((cId, tier) -> 100.0);
 
         ClanResponse res = clanService.getClan(clanId);
 
@@ -95,14 +95,27 @@ class ClanServiceImplTest {
 
     @Test
     void getMyClan_whenApproved() {
-        ClanMembership membership = ClanMembership.builder().clan(dummyClan).userId(userId).role(ClanRole.LEADER).status(MembershipStatus.APPROVED).build();
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.of(membership));
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
-        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(List.of(membership));
-        
+        ClanMembership membership = ClanMembership.builder()
+                .clan(dummyClan)
+                .userId(userId)
+                .role(ClanRole.LEADER)
+                .status(MembershipStatus.APPROVED)
+                .build();
+
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED))
+                .thenReturn(Optional.of(membership));
+
+        when(buffDebuffService.buildCalculator(any())).thenReturn((cId, tier) -> 100.0);
+
+        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED))
+                .thenReturn(List.of(membership));
+
+        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.PENDING))
+                .thenReturn(List.of());
+
         User dummyUser = new User();
         dummyUser.setDisplayName("Test User");
-        when(userRepository.findByStringId(any())).thenReturn(Optional.of(dummyUser));
+        when(userRepository.findByStringId(userId)).thenReturn(Optional.of(dummyUser));
 
         ClanResponse res = clanService.getMyClan(userId);
 
@@ -157,7 +170,7 @@ class ClanServiceImplTest {
     void getAllClans_success() {
         when(clanRepository.findAll()).thenReturn(List.of(dummyClan));
         when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(1L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        when(buffDebuffService.buildCalculator(any())).thenReturn((cId, tier) -> 100.0);
 
         List<ClanResponse> list = clanService.getAllClans();
         assertEquals(1, list.size());

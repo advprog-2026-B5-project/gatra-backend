@@ -13,7 +13,6 @@ import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.MultipleChoiceQuestion;
-import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.model.QuizAttempt;
 import id.ac.ui.cs.advprog.gatra.quiz.model.TrueFalseQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
@@ -34,7 +33,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,15 +116,15 @@ class QuizAttemptServiceImplTest {
         when(attemptRepository.save(any(QuizAttempt.class))).thenReturn(new QuizAttempt());
         
         MilestoneResponse milestoneResponse = new MilestoneResponse();
-        when(milestoneService.recordAction(eq(userId), eq(ActionType.FINISH_QUIZ))).thenReturn(milestoneResponse);
-        when(missionProgressService.incrementProgress(eq(userId), eq("FINISH_QUIZ"))).thenReturn(null);
+        when(milestoneService.recordAction(userId, ActionType.FINISH_QUIZ)).thenReturn(milestoneResponse);
+        when(missionProgressService.incrementProgress(userId, "FINISH_QUIZ")).thenReturn(null);
 
         ClanMembership dummyMembership = new ClanMembership();
         Clan dummyClan = new Clan();
         dummyClan.setId(UUID.randomUUID().toString());
         dummyMembership.setClan(dummyClan);
-        
-        when(clanMembershipRepository.findFirstByUserIdAndStatus(eq(userId.toString()), eq(MembershipStatus.APPROVED)))
+
+        when(clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), MembershipStatus.APPROVED))
                 .thenReturn(Optional.of(dummyMembership));
 
         doNothing().when(pointRecordingService).recordPoints(anyString(), anyString(), anyDouble(), any(PointActivityType.class), anyString());
@@ -140,11 +138,11 @@ class QuizAttemptServiceImplTest {
         
         verify(attemptRepository, times(1)).save(any(QuizAttempt.class));
         verify(pointRecordingService, times(1)).recordPoints(
-                eq(userId.toString()),
-                eq(dummyClan.getId()),
-                eq(100.0),
-                eq(PointActivityType.QUIZ_PASSED),
-                eq(articleId.toString())
+                userId.toString(),
+                dummyClan.getId(),
+                100.0,
+                PointActivityType.QUIZ_PASSED,
+                articleId.toString()
         );
     }
 

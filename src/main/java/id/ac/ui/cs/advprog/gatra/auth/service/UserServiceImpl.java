@@ -69,8 +69,8 @@ public class UserServiceImpl implements UserService {
         }
 
         // Extract IDs for our IN clauses
-        List<UUID> userIds = users.stream().map(User::getId).collect(Collectors.toList());
-        List<String> userIdStrings = userIds.stream().map(UUID::toString).collect(Collectors.toList());
+        List<UUID> userIds = users.stream().map(User::getId).toList();
+        List<String> userIdStrings = userIds.stream().map(UUID::toString).toList();
 
         // Batch fetch profiles (Query 2)
         // Convert to a Map for O(1) lookup in memory
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
                     .currentLeagueTier(profile != null && profile.getCurrentLeagueTier() != null
                             ? profile.getCurrentLeagueTier() : "Bronze")
                     .build();
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     @Override

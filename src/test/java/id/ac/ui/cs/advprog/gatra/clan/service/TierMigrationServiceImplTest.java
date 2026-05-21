@@ -98,8 +98,9 @@ class TierMigrationServiceImplTest {
                 .build();
 
         when(clanRepository.findById("c1")).thenReturn(Optional.empty());
+        List<TierLeaderboardResponse> migrationPayload = List.of(tierBoard);
 
-        assertThrows(RuntimeException.class, () -> tierMigrationService.migrate(List.of(tierBoard)));
+        assertThrows(RuntimeException.class, () -> tierMigrationService.migrate(migrationPayload));
     }
 
     @Test
