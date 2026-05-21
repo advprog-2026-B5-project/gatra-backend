@@ -117,15 +117,15 @@ class QuizAttemptServiceImplTest {
         when(attemptRepository.save(any(QuizAttempt.class))).thenReturn(new QuizAttempt());
         
         MilestoneResponse milestoneResponse = new MilestoneResponse();
-        when(milestoneService.recordAction(eq(userId), eq(ActionType.FINISH_QUIZ))).thenReturn(milestoneResponse);
-        when(missionProgressService.incrementProgress(eq(userId), eq("FINISH_QUIZ"))).thenReturn(null);
+        when(milestoneService.recordAction(userId, ActionType.FINISH_QUIZ)).thenReturn(milestoneResponse);
+        when(missionProgressService.incrementProgress(userId, "FINISH_QUIZ")).thenReturn(null);
 
         ClanMembership dummyMembership = new ClanMembership();
         Clan dummyClan = new Clan();
         dummyClan.setId(UUID.randomUUID().toString());
         dummyMembership.setClan(dummyClan);
-        
-        when(clanMembershipRepository.findFirstByUserIdAndStatus(eq(userId.toString()), eq(MembershipStatus.APPROVED)))
+
+        when(clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), MembershipStatus.APPROVED))
                 .thenReturn(Optional.of(dummyMembership));
 
         doNothing().when(pointRecordingService).recordPoints(anyString(), anyString(), anyDouble(), any(PointActivityType.class), anyString());
