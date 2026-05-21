@@ -95,14 +95,27 @@ class ClanServiceImplTest {
 
     @Test
     void getMyClan_whenApproved() {
-        ClanMembership membership = ClanMembership.builder().clan(dummyClan).userId(userId).role(ClanRole.LEADER).status(MembershipStatus.APPROVED).build();
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.of(membership));
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        ClanMembership membership = ClanMembership.builder()
+                .clan(dummyClan)
+                .userId(userId)
+                .role(ClanRole.LEADER)
+                .status(MembershipStatus.APPROVED)
+                .build();
+
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED))
+                .thenReturn(Optional.of(membership));
+
         when(buffDebuffService.buildCalculator(any())).thenReturn((cId, tier) -> 100.0);
-        
+
+        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED))
+                .thenReturn(List.of(membership));
+
+        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.PENDING))
+                .thenReturn(List.of());
+
         User dummyUser = new User();
         dummyUser.setDisplayName("Test User");
-        when(userRepository.findByStringId(any())).thenReturn(Optional.of(dummyUser));
+        when(userRepository.findByStringId(userId)).thenReturn(Optional.of(dummyUser));
 
         ClanResponse res = clanService.getMyClan(userId);
 
