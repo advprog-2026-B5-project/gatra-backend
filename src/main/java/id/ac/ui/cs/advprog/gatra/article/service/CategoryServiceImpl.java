@@ -64,19 +64,26 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public void deleteCategory(UUID id) {
         Category category = findCategoryOrThrow(id);
+        reassignArticlesToFallback(id);
+        softDeleteCategory(category);
+    }
 
-        Category fallback = categoryRepository.findByName(fallback_category_name)
-                .orElseGet(() -> categoryRepository.save(
-                        Category.builder().name(fallback_category_name).build()
-                ));
-
-        articleRepository.findByCategoryId(id)
+    private void reassignArticlesToFallback(UUID categoryId) {
+        Category fallback = getOrCreateFallbackCategory();
+        articleRepository.findByCategoryId(categoryId)
                 .forEach(article -> {
                     article.setCategory(fallback);
                     articleRepository.save(article);
                 });
+    }
 
-        // Soft delete kategori
+    private Category getOrCreateFallbackCategory() {
+        return categoryRepository.findByName(fallback_category_name)
+                .orElseGet(() -> categoryRepository.save(
+                        Category.builder().name(fallback_category_name).build()));
+    }
+
+    private void softDeleteCategory(Category category) {
         category.setDeletedAt(LocalDateTime.now());
         categoryRepository.save(category);
     }
