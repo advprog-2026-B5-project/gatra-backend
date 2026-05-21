@@ -8,12 +8,10 @@ import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepositor
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
-import id.ac.ui.cs.advprog.gatra.achievement.strategy.HideAchievementStrategy;
-import id.ac.ui.cs.advprog.gatra.achievement.strategy.ShowAchievementStrategy;
+import id.ac.ui.cs.advprog.gatra.achievement.strategy.DisplayAchievementStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,12 +38,12 @@ class UserAchievementServiceImplTest {
 
     @Mock
     private AchievementMapper achievementMapper;
-    @Mock
-    private ShowAchievementStrategy showStrategy;
-    @Mock
-    private HideAchievementStrategy hideStrategy;
 
-    @InjectMocks
+    @Mock
+    private DisplayAchievementStrategy showStrategy;
+    @Mock
+    private DisplayAchievementStrategy hideStrategy;
+
     private UserAchievementServiceImpl userAchievementService;
 
     private final String USERNAME = "user123";
@@ -62,7 +60,15 @@ class UserAchievementServiceImplTest {
         mockUser = User.builder().id(userId).username(USERNAME).build();
 
         userAchievement = new UserAchievement();
-        userAchievement.setUserId(userId); // Use soft reference
+        userAchievement.setUserId(userId);
+
+        userAchievementService = new UserAchievementServiceImpl(
+                userAchievementRepository,
+                userService,
+                achievementMapper,
+                showStrategy,
+                hideStrategy
+        );
     }
 
     @Test
@@ -141,8 +147,8 @@ class UserAchievementServiceImplTest {
         userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true);
 
         verify(userService).getUserEntityByUsername(USERNAME);
-        verify(showStrategy, times(1)).execute(userAchievement, userAchievementRepository);
-        verify(hideStrategy, never()).execute(any(), any());
+        verify(showStrategy, times(1)).execute(userAchievement);
+        verify(hideStrategy, never()).execute(any());
     }
 
     @Test
@@ -154,8 +160,8 @@ class UserAchievementServiceImplTest {
         userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, false);
 
         verify(userService).getUserEntityByUsername(USERNAME);
-        verify(hideStrategy, times(1)).execute(userAchievement, userAchievementRepository);
-        verify(showStrategy, never()).execute(any(), any());
+        verify(hideStrategy, times(1)).execute(userAchievement);
+        verify(showStrategy, never()).execute(any());
     }
 
     @Test

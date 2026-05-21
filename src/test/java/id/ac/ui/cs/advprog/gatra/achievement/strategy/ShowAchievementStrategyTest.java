@@ -18,7 +18,7 @@ import static org.mockito.Mockito.*;
 class ShowAchievementStrategyTest {
 
     @Mock
-    private UserAchievementRepository repository;
+    private UserAchievementRepository userAchievementRepository;
 
     @InjectMocks
     private ShowAchievementStrategy strategy;
@@ -31,30 +31,29 @@ class ShowAchievementStrategyTest {
         userId = UUID.randomUUID();
         userAchievement = new UserAchievement();
         userAchievement.setId(UUID.randomUUID());
-        userAchievement.setUserId(userId); // Use the new soft reference!
+        userAchievement.setUserId(userId);
         userAchievement.setDisplayed(false);
     }
 
     @Test
     void execute_ShouldSetDisplayedTrue_WhenCountIsLessThanMax() {
-        // Mock the new ByUserId method
-        when(repository.countByUserIdAndIsDisplayedTrue(userId)).thenReturn(2L);
+        when(userAchievementRepository.countByUserIdAndIsDisplayedTrue(userId)).thenReturn(2L);
 
-        strategy.execute(userAchievement, repository);
+        strategy.execute(userAchievement);
 
         assertTrue(userAchievement.isDisplayed());
-        verify(repository, times(1)).save(userAchievement);
+        verify(userAchievementRepository, times(1)).save(userAchievement);
     }
 
     @Test
     void execute_ShouldThrowException_WhenCountIsMax() {
-        when(repository.countByUserIdAndIsDisplayedTrue(userId)).thenReturn(3L);
+        when(userAchievementRepository.countByUserIdAndIsDisplayedTrue(userId)).thenReturn(3L);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            strategy.execute(userAchievement, repository);
+            strategy.execute(userAchievement);
         });
 
         assertEquals("Maksimal 3 achievement yang bisa ditampilkan di profil", exception.getMessage());
-        verify(repository, never()).save(any());
+        verify(userAchievementRepository, never()).save(any());
     }
-}
+}

@@ -10,8 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,7 +25,7 @@ class StudentAchievementControllerTest {
     private UserAchievementService userAchievementService;
 
     @Mock
-    private Principal principal;
+    private UserDetails userDetails;
 
     @InjectMocks
     private StudentAchievementController studentController;
@@ -36,7 +36,7 @@ class StudentAchievementControllerTest {
     @BeforeEach
     void setUp() {
         achievementId = UUID.randomUUID();
-        when(principal.getName()).thenReturn(USERNAME);
+        when(userDetails.getUsername()).thenReturn(USERNAME);
     }
 
     @Test
@@ -44,7 +44,7 @@ class StudentAchievementControllerTest {
         AchievementResponse response = AchievementResponse.builder().name("My Achievement").build();
         when(userAchievementService.getMyAchievements(USERNAME)).thenReturn(List.of(response));
 
-        ResponseEntity<List<AchievementResponse>> result = studentController.getMyAchievements(principal);
+        ResponseEntity<List<AchievementResponse>> result = studentController.getMyAchievements(userDetails);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(1, result.getBody().size());
@@ -55,9 +55,9 @@ class StudentAchievementControllerTest {
     void toggleDisplayAchievement_shouldReturnNoContent() {
         doNothing().when(userAchievementService).toggleDisplayAchievement(USERNAME, achievementId, true);
 
-        ResponseEntity<Void> result = studentController.toggleDisplayAchievement(achievementId, true, principal);
+        ResponseEntity<Void> result = studentController.toggleDisplayAchievement(achievementId, true, userDetails);
 
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
         verify(userAchievementService, times(1)).toggleDisplayAchievement(USERNAME, achievementId, true);
     }
-}
+}

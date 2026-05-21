@@ -1,28 +1,31 @@
 package id.ac.ui.cs.advprog.gatra.achievement.strategy;
 
+import id.ac.ui.cs.advprog.gatra.achievement.model.AchievementConstants;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserAchievementRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class ShowAchievementStrategy implements DisplayAchievementStrategy {
 
-    private static final int MAX_DISPLAYED = 3;
+    private final UserAchievementRepository userAchievementRepository;
 
     @Override
-    public void execute(UserAchievement userAchievement, UserAchievementRepository repository) {
+    public void execute(UserAchievement userAchievement) {
 
-        long currentCount = repository.countByUserIdAndIsDisplayedTrue(
+        long currentCount = userAchievementRepository.countByUserIdAndIsDisplayedTrue(
                 userAchievement.getUserId()
         );
 
-        if (currentCount >= MAX_DISPLAYED) {
+        if (currentCount >= AchievementConstants.MAX_DISPLAYED_ACHIEVEMENTS) {
             throw new IllegalStateException(
-                    "Maksimal " + MAX_DISPLAYED + " achievement yang bisa ditampilkan di profil"
+                    "Maksimal " + AchievementConstants.MAX_DISPLAYED_ACHIEVEMENTS + " achievement yang bisa ditampilkan di profil"
             );
         }
 
         userAchievement.setDisplayed(true);
-        repository.save(userAchievement);
+        userAchievementRepository.save(userAchievement);
     }
 }
