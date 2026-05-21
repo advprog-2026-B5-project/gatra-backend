@@ -25,6 +25,14 @@ Untuk memutus siklus pemanggilan database di dalam *looping*,mengimplementasikan
 - **Sebelum:** O(N) Query — Jumlah eksekusi query bergantung pada jumlah pengguna (contoh: puluhan hingga ribuan query).
 - **Sesudah:** O(1) Relatif — Kompleksitas query konstan menjadi tepat **3 query SQL** untuk *request* sebesar apapun.
 
+## Profiling endpoint login dan register
+![img.png](../../../../../../../../../../assets/profiling-endpoint-auth.png)
+
+#### Justifikasi Proses Profiling
+Untuk mengevaluasi performa modul Autentikasi (`auth/user`), proses profiling dilakukan di tingkat API menggunakan fitur **Performance Testing pada Postman**. Pendekatan *Black-box API Profiling* ini dipilih dengan justifikasi:
+1. **Simulasi Real-World Load:** Postman mensimulasikan beban nyata secara *concurrent* (misalnya 30 *Virtual Users* secara bersamaan) untuk melihat bagaimana sistem merespons lonjakan trafik yang tiba-tiba (*spike*).
+2. **Karakteristik Modul Auth:** Modul autentikasi bersifat *CPU-bound* akibat proses kriptografi (*password hashing* seperti BCrypt) dan operasi I/O ke pangkalan data saat memvalidasi *username*/*email*. Memantau *response time* dan *throughput* dari luar memberikan matriks paling akurat tentang pengalaman pengguna akhir (*End-User Latency*).
+
 ## Monitoring
 ![img.png](../../../../../../../../../../assets/monitoring-auth.png)
 ### Justifikasi Desain & Implementasi Monitoring
