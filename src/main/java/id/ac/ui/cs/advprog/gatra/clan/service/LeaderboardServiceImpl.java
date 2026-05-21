@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
 import id.ac.ui.cs.advprog.gatra.clan.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.gatra.clan.dto.TierLeaderboardResponse;
 import id.ac.ui.cs.advprog.gatra.clan.model.Clan;
@@ -19,7 +20,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LeaderboardServiceImpl implements LeaderboardService {
 
     private final ClanRepository clanRepository;
-    private final ClanScoringService clanScoringService;
     private final BuffDebuffService buffDebuffService;
 
     @Override
@@ -34,25 +34,21 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     private List<LeaderboardEntryResponse> buildRankings(List<Clan> clans, String tier) {
         List<LeaderboardEntryResponse> entries = clans.stream()
-                .map(clan -> toLeaderboardEntry(clan, tier))
+                .map(this::toLeaderboardEntry)
                 .sorted(Comparator.comparingDouble(LeaderboardEntryResponse::getScore).reversed())
                 .toList();
 
         return assignRanks(entries);
     }
 
-    private LeaderboardEntryResponse toLeaderboardEntry(Clan clan, String tier) {
-        ScoreModifier modifier = buffDebuffService.getModifier(clan.getId());
-        double finalScore = clanScoringService.calculateClanScore(
-                clan.getId(),
-                tier,
-                List.of(modifier)
-        );
+    private LeaderboardEntryResponse toLeaderboardEntry(Clan clan) {
+        ScoreCalculator calculator = buffDebuffService.buildCalculator(clan.getId());
+        double finalScore = calculator.calculate(clan.getId(), clan.getTier());
 
         return LeaderboardEntryResponse.builder()
                 .clanId(clan.getId())
                 .clanName(clan.getName())
-                .tier(tier)
+                .tier(clan.getTier())
                 .score(finalScore)
                 .build();
     }

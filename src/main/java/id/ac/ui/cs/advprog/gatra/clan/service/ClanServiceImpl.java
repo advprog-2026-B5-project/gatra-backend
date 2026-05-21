@@ -1,13 +1,12 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
 
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
-import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
-import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ public class ClanServiceImpl implements ClanService {
     private final ClanRepository clanRepository;
     private final ClanMembershipRepository membershipRepository;
     private final UserRepository userRepository;
-    private final ClanScoringService clanScoringService;
     private final BuffDebuffService buffDebuffService;
 
     @Override
@@ -50,16 +48,12 @@ public class ClanServiceImpl implements ClanService {
         return toResponse(clan);
     }
 
-    private ClanResponse toResponse(Clan clan){
+    private ClanResponse toResponse(Clan clan) {
+        ScoreCalculator calculator = buffDebuffService.buildCalculator(clan.getId());
+        double finalScore = calculator.calculate(clan.getId(), clan.getTier());
+
         long memberCount = membershipRepository
                 .countByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED);
-
-        String currentClanTier = clan.getTier();
-
-        ScoreModifier modifier = buffDebuffService.getModifier(clan.getId());
-        double finalScore = clanScoringService.calculateClanScore(
-                clan.getId(), currentClanTier, List.of(modifier)
-        );
 
         return ClanResponse.builder()
                 .id(clan.getId())
@@ -68,7 +62,7 @@ public class ClanServiceImpl implements ClanService {
                 .createdAt(clan.getCreatedAt())
                 .memberCount((int) memberCount)
                 .score(finalScore)
-                .tier(currentClanTier)
+                .tier(clan.getTier())
                 .build();
     }
 
@@ -110,9 +104,8 @@ public class ClanServiceImpl implements ClanService {
             ClanMembership m = approved.get();
             Clan clan = m.getClan();
 
-            // TODO: Replace this hardcoded tier with actual tier fetched from the Leaderboard module
-            String currentClanTier = "BRONZE";
-            double finalScore = clanScoringService.calculateClanScore(clan.getId(), currentClanTier, List.of());
+            ScoreCalculator calculator = buffDebuffService.buildCalculator(clan.getId());
+            double finalScore = calculator.calculate(clan.getId(), clan.getTier());
 
             List<MembershipResponse> members = membershipRepository
                     .findByClanIdAndStatus(clan.getId(), MembershipStatus.APPROVED)
@@ -136,7 +129,7 @@ public class ClanServiceImpl implements ClanService {
                     .members(members)
                     .pendingApplications(pending)
                     .score(finalScore)
-                    .tier(currentClanTier)
+                    .tier(clan.getTier())
                     .build();
         }
 

@@ -1,11 +1,13 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
 
+import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
 import id.ac.ui.cs.advprog.gatra.clan.helper.MissionCompletionChecker;
 import id.ac.ui.cs.advprog.gatra.clan.model.ClanMembership;
 import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
 import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
-import id.ac.ui.cs.advprog.gatra.clan.strategy.BuffDebuffStrategy;
-import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
+import id.ac.ui.cs.advprog.gatra.quiz.model.QuizAttempt;
+import id.ac.ui.cs.advprog.gatra.quiz.repository.QuizAttemptRepository;
+import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,51 +16,93 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BuffDebuffServiceImplTest {
+
     @Mock private ClanMembershipRepository membershipRepository;
     @Mock private MissionCompletionChecker missionCompletionChecker;
-    @Mock private BuffDebuffStrategy strategy;
+    @Mock private ClanScoringService clanScoringService;
+    @Mock private QuizAttemptRepository quizAttemptRepository;
 
+    private static final String VALID_UUID = "550e8400-e29b-41d4-a716-446655440000"; // ← sini
     private BuffDebuffServiceImpl buffDebuffService;
 
     @BeforeEach
     void setUp() {
-        buffDebuffService = new BuffDebuffServiceImpl(membershipRepository, missionCompletionChecker, List.of(strategy));
+        buffDebuffService = new BuffDebuffServiceImpl(
+                membershipRepository, missionCompletionChecker,
+                clanScoringService, quizAttemptRepository
+        );
+    }
+
+    // Helper
+    private ClanMembership member(String userId) {
+        return ClanMembership.builder()
+                .userId(VALID_UUID)
+                .build();
+    }
+
+    private QuizAttempt attempt(int score) {
+        QuizAttempt a = new QuizAttempt();
+        a.setScore(score);
+        return a;
     }
 
     @Test
-    void getModifier_noMembers_returnsDefaultStrategyModifier() {
-        String clanId = "clan1";
-        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(List.of());
-        when(strategy.isApplicable(0.0)).thenReturn(true);
-        ScoreModifier modifier = new ScoreModifier("NO_MEMBERS", 1.0);
-        when(strategy.getModifier()).thenReturn(modifier);
+    void noMembers_noModifier_baseScoreUnchanged() {
+        when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
+                .thenReturn(List.of());
+        when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
 
-        ScoreModifier res = buffDebuffService.getModifier(clanId);
-
-        assertEquals(modifier, res);
+        ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
+        assertThat(calc.calculate("clan-1", "BRONZE")).isEqualTo(100.0);
     }
 
     @Test
-    void getModifier_someMembersCompleted_calculatesRateAndReturnsStrategyModifier() {
-        String clanId = "clan1";
-        ClanMembership mem1 = ClanMembership.builder().userId("user1").build();
-        ClanMembership mem2 = ClanMembership.builder().userId("user2").build();
-        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(List.of(mem1, mem2));
-        
-        when(missionCompletionChecker.hasCompletedAnyMission("user1")).thenReturn(true);
-        when(missionCompletionChecker.hasCompletedAnyMission("user2")).thenReturn(false);
-        
-        when(strategy.isApplicable(0.5)).thenReturn(true);
-        ScoreModifier modifier = new ScoreModifier("HALF_COMPLETED", 1.5);
-        when(strategy.getModifier()).thenReturn(modifier);
+    void highCompletion_buffActive_scoreIncreases() {
+        // 100% member kelar mission → buff aktif
+        when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(true);
+        when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of());
+        when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
 
-        ScoreModifier res = buffDebuffService.getModifier(clanId);
+        ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
+        assertThat(calc.calculate("clan-1", "BRONZE"))
+                .isEqualTo(120.0)
+                .isGreaterThan(100.0);
+    }
 
-        assertEquals(modifier, res);
+    @Test
+    void lowAccuracy_debuffActive_scoreDecreases() {
+        // quiz score 30 < 50 → debuff aktif
+        when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(false);
+        when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of(attempt(30)));
+        when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
+
+        ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
+        assertThat(calc.calculate("clan-1", "BRONZE"))
+                .isEqualTo(80.0)
+                .isLessThan(100.0);
+    }
+
+    @Test
+    void bothConditions_decoratorsStack() {
+        // buff + debuff aktif bersamaan → stackable
+        when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(true);
+        when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of(attempt(30)));
+        when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
+
+        ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
+        assertThat(calc.calculate("clan-1", "BRONZE")).isEqualTo(96.0); // 100 × 1.2 × 0.8
     }
 }

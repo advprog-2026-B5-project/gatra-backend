@@ -1,11 +1,8 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
 
-import id.ac.ui.cs.advprog.gatra.clan.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.gatra.clan.dto.TierLeaderboardResponse;
 import id.ac.ui.cs.advprog.gatra.clan.model.Clan;
 import id.ac.ui.cs.advprog.gatra.clan.repository.ClanRepository;
-import id.ac.ui.cs.advprog.gatra.scoring.model.ScoreModifier;
-import id.ac.ui.cs.advprog.gatra.scoring.service.ClanScoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,14 +14,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LeaderboardServiceImplTest {
 
     @Mock private ClanRepository clanRepository;
-    @Mock private ClanScoringService clanScoringService;
     @Mock private BuffDebuffService buffDebuffService;
 
     @InjectMocks private LeaderboardServiceImpl leaderboardService;
@@ -41,25 +37,22 @@ class LeaderboardServiceImplTest {
     @Test
     void getLeaderboardByTier_success() {
         when(clanRepository.findByTier("BRONZE")).thenReturn(List.of(clan1, clan2));
-        when(buffDebuffService.getModifier(any())).thenReturn(new ScoreModifier("DUMMY", 1.0));
-        when(clanScoringService.calculateClanScore(eq("clan1"), eq("BRONZE"), any())).thenReturn(150.0);
-        when(clanScoringService.calculateClanScore(eq("clan2"), eq("BRONZE"), any())).thenReturn(200.0);
+
+        when(buffDebuffService.buildCalculator("clan1")).thenReturn((id, tier) -> 150.0);
+        when(buffDebuffService.buildCalculator("clan2")).thenReturn((id, tier) -> 200.0);
 
         TierLeaderboardResponse res = leaderboardService.getLeaderboardByTier("BRONZE");
 
-        assertNotNull(res);
-        assertEquals("BRONZE", res.getTier());
-        assertEquals(2, res.getRankings().size());
+        // clan2 yang skornya lebih tinggi harus di rank 1
+        assertEquals("clan2", res.getRankings().get(0).getClanId());
+        assertEquals(200.0, res.getRankings().get(0).getScore());
+        assertEquals(1, res.getRankings().get(0).getRank());
 
-        LeaderboardEntryResponse rank1 = res.getRankings().get(0);
-        assertEquals("clan2", rank1.getClanId());
-        assertEquals(1, rank1.getRank());
-        assertEquals(200.0, rank1.getScore());
+        assertEquals("clan1", res.getRankings().get(1).getClanId());
+        assertEquals(150.0, res.getRankings().get(1).getScore());
+        assertEquals(2, res.getRankings().get(1).getRank());
 
-        LeaderboardEntryResponse rank2 = res.getRankings().get(1);
-        assertEquals("clan1", rank2.getClanId());
-        assertEquals(2, rank2.getRank());
-        assertEquals(150.0, rank2.getScore());
+
     }
 
     @Test
@@ -70,5 +63,16 @@ class LeaderboardServiceImplTest {
         
         assertFalse(all.isEmpty());
         verify(clanRepository, atLeast(3)).findByTier(any()); 
+    }
+
+    @Test
+    void getLeaderboardByTier_emptyTier_returnsEmptyRankings() {
+        when(clanRepository.findByTier("DIAMOND")).thenReturn(List.of());
+
+        TierLeaderboardResponse res = leaderboardService.getLeaderboardByTier("DIAMOND");
+
+        assertNotNull(res);
+        assertEquals("DIAMOND", res.getTier());
+        assertTrue(res.getRankings().isEmpty());
     }
 }

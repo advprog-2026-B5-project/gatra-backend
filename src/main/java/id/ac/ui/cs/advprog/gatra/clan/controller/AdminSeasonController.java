@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.clan.controller;
 
-import id.ac.ui.cs.advprog.gatra.scoring.service.SeasonService;
+import id.ac.ui.cs.advprog.gatra.clan.dto.SeasonResultResponse;
+import id.ac.ui.cs.advprog.gatra.clan.service.ClanSeasonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,14 +16,14 @@ import java.util.Map;
 public class AdminSeasonController {
 
     @Autowired
-    private SeasonService seasonService;
+    private ClanSeasonService clanSeasonService;
 
     @PostMapping("/reset")
-    @PreAuthorize("hasRole('ADMIN')") // hanya admin yang bisa mengakses
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> resetSeason() {
         try {
-            seasonService.resetSeason();
-            return ResponseEntity.ok(Map.of("message", "Season reset successfully. All leaderboards are now 0."));
+            SeasonResultResponse result = clanSeasonService.endSeason();
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "Failed to reset season: " + e.getMessage()));
         }
