@@ -113,6 +113,6 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     }
 
     private boolean checkAnswer(Question question, String userAnswer) {
-        return question.checkAnswer(question.getCorrectAnswer());
+        return question.checkAnswer(userAnswer);
     }
 }
