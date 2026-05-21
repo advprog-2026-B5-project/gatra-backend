@@ -37,9 +37,6 @@ class ArticleControllerTest {
     private static final String DUMMY_CATEGORY_NAME = "Technology";
 
     @Mock private ArticleService articleService;
-    @Mock private MilestoneService milestoneService;
-    @Mock private MissionProgressService missionProgressService;
-    @Mock private UserRepository userRepository;
     @Mock private UserDetails userDetails;
 
     @InjectMocks
@@ -150,9 +147,6 @@ class ArticleControllerTest {
 
     @Test
     void markArticleAsRead_shouldTriggerMilestoneDetection() {
-        UUID userId = UUID.randomUUID();
-        User user = User.builder().id(userId).username(DUMMY_USERNAME).build();
-
         MilestoneResponse milestoneResponse = MilestoneResponse.builder()
                 .actionType("READ_ARTICLE")
                 .newTotalCount(1)
@@ -160,18 +154,16 @@ class ArticleControllerTest {
                 .build();
 
         when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME);
-        when(articleService.getArticleById(articleId)).thenReturn(response);
-        when(userRepository.findByUsername(DUMMY_USERNAME)).thenReturn(Optional.of(user));
-        when(milestoneService.recordAction(userId, ActionType.READ_ARTICLE))
-                .thenReturn(milestoneResponse);
+        when(articleService.markAsRead(articleId, DUMMY_USERNAME)).thenReturn(milestoneResponse);
 
         ResponseEntity<MilestoneResponse> result = articleController.markArticleAsRead(articleId, userDetails);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertNotNull(result.getBody());
         assertEquals("READ_ARTICLE", result.getBody().getActionType());
         assertEquals(1, result.getBody().getNewTotalCount());
-        verify(missionProgressService).incrementProgress(userId, "READ_ARTICLE");
-        verify(milestoneService).recordAction(userId, ActionType.READ_ARTICLE);
+
+        verify(articleService, times(1)).markAsRead(articleId, DUMMY_USERNAME);
     }
 }
 

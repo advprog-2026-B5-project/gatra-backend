@@ -25,9 +25,9 @@ import java.util.UUID;
 public class ArticleController {
 
     private final ArticleService articleService;
-    private final MilestoneService milestoneService;
+
     private final UserRepository userRepository;
-    private final MissionProgressService missionProgressService;
+
 
     @GetMapping
     public ResponseEntity<List<ArticleResponse>> getAllArticles() {
@@ -64,15 +64,7 @@ public class ArticleController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        articleService.getArticleById(id);
-
-        User user = userRepository.findByUsername(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User", userDetails.getUsername()));
-
-        var completedMissions = missionProgressService.incrementProgress(user.getId(), "READ_ARTICLE");
-        MilestoneResponse response = milestoneService.recordAction(user.getId(), ActionType.READ_ARTICLE);
-        response.setCompletedMissions(completedMissions);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(articleService.markAsRead(id, userDetails.getUsername()));
     }
 
     @GetMapping("/deleted")
