@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.gatra.achievement.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.AchievementResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.AchievementConstants;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.AchievementMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserAchievement;
@@ -18,8 +19,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserAchievementServiceImpl implements UserAchievementService {
-
-    private static final int MAX_DISPLAYED_ACHIEVEMENTS = 3;
 
     private final UserAchievementRepository userAchievementRepository;
     private final UserService userService;
@@ -54,7 +53,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
         UUID userId = userService.getUserEntityByUsername(username).getId();
         return userAchievementRepository.findByUserIdAndIsDisplayedTrue(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
-                .limit(MAX_DISPLAYED_ACHIEVEMENTS)
+                .limit(AchievementConstants.MAX_DISPLAYED_ACHIEVEMENTS)
                 .collect(Collectors.toList());
     }
 
