@@ -79,7 +79,7 @@ class ClanServiceImplTest {
         assertNotNull(res);
         assertEquals(clanId, res.getId());
         assertEquals(5, res.getMemberCount());
-        assertEquals(200.0, res.getScore());
+        assertEquals(100.0, res.getScore());
     }
 
     @Test

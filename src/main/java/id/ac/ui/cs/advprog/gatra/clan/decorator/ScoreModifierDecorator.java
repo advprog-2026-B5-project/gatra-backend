@@ -13,5 +13,5 @@ public abstract class ScoreModifierDecorator implements ScoreCalculator {
     }
 
     protected abstract double applyModifier(double score);
-    public abstract String getModifierName();
+
 }

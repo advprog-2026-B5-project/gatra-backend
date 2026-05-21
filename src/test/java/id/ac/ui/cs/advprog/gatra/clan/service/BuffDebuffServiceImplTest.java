@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +29,7 @@ class BuffDebuffServiceImplTest {
     @Mock private ClanScoringService clanScoringService;
     @Mock private QuizAttemptRepository quizAttemptRepository;
 
+    private static final String VALID_UUID = "550e8400-e29b-41d4-a716-446655440000"; // ← sini
     private BuffDebuffServiceImpl buffDebuffService;
 
     @BeforeEach
@@ -42,7 +42,9 @@ class BuffDebuffServiceImplTest {
 
     // Helper
     private ClanMembership member(String userId) {
-        return ClanMembership.builder().userId(userId).build();
+        return ClanMembership.builder()
+                .userId(VALID_UUID)
+                .build();
     }
 
     private QuizAttempt attempt(int score) {
@@ -65,38 +67,38 @@ class BuffDebuffServiceImplTest {
     void highCompletion_buffActive_scoreIncreases() {
         // 100% member kelar mission → buff aktif
         when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
-                .thenReturn(List.of(member("u1")));
-        when(missionCompletionChecker.hasCompletedAnyMission("u1")).thenReturn(true);
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(true);
         when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of());
         when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
 
         ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
         assertThat(calc.calculate("clan-1", "BRONZE"))
-                .isEqualTo(120.0) // 100 × 1.2
-                .isGreaterThan(100.0); // skor naik ✅
+                .isEqualTo(120.0)
+                .isGreaterThan(100.0);
     }
 
     @Test
     void lowAccuracy_debuffActive_scoreDecreases() {
         // quiz score 30 < 50 → debuff aktif
         when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
-                .thenReturn(List.of(member("u1")));
-        when(missionCompletionChecker.hasCompletedAnyMission("u1")).thenReturn(false);
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(false);
         when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of(attempt(30)));
         when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
 
         ScoreCalculator calc = buffDebuffService.buildCalculator("clan-1");
         assertThat(calc.calculate("clan-1", "BRONZE"))
-                .isEqualTo(80.0) // 100 × 0.8
-                .isLessThan(100.0); // skor turun ✅
+                .isEqualTo(80.0)
+                .isLessThan(100.0);
     }
 
     @Test
     void bothConditions_decoratorsStack() {
         // buff + debuff aktif bersamaan → stackable
         when(membershipRepository.findByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED)))
-                .thenReturn(List.of(member("u1")));
-        when(missionCompletionChecker.hasCompletedAnyMission("u1")).thenReturn(true);
+                .thenReturn(List.of(member(VALID_UUID)));
+        when(missionCompletionChecker.hasCompletedAnyMission(VALID_UUID)).thenReturn(true);
         when(quizAttemptRepository.findByUserId(any())).thenReturn(List.of(attempt(30)));
         when(clanScoringService.calculateClanScore(any(), any(), any())).thenReturn(100.0);
 

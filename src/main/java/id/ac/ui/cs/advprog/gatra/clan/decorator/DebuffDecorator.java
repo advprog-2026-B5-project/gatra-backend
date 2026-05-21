@@ -11,7 +11,4 @@ public class DebuffDecorator extends ScoreModifierDecorator {
     protected double applyModifier(double score) {
         return score * MULTIPLIER;
     }
-
-    @Override
-    public String getModifierName() { return "Low Accuracy Penalty (×0.8)"; }
 }

@@ -11,7 +11,4 @@ public class BuffDecorator extends ScoreModifierDecorator {
     protected double applyModifier(double score) {
         return score * MULTIPLIER;
     }
-
-    @Override
-    public String getModifierName() { return "Productivity Buff (×1.2)"; }
 }
