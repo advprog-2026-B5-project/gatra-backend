@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
+import id.ac.ui.cs.advprog.gatra.exception.GlobalExceptionHandler;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(AdminMissionController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Import(GlobalExceptionHandler.class)
 class AdminMissionControllerTest {
 
     @Autowired
@@ -54,7 +57,7 @@ class AdminMissionControllerTest {
     @BeforeEach
     void setUp() {
         missionId = UUID.randomUUID();
-        
+
         request = DailyMissionRequest.builder()
                 .title("Misi Baca")
                 .description("Baca 2 artikel")
@@ -86,6 +89,24 @@ class AdminMissionControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(missionId.toString()))
                 .andExpect(jsonPath("$.title").value("Misi Baca"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void createMission_ShouldReturnBadRequest_WhenInvalid() throws Exception {
+        DailyMissionRequest invalidRequest = DailyMissionRequest.builder()
+                .title("")
+                .description("")
+                .targetCount(0)
+                .rewardPoints(-1)
+                .actionType("")
+                .status("")
+                .build();
+
+        mockMvc.perform(post(BASE_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -129,6 +150,19 @@ class AdminMissionControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Misi Baca"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void updateMission_ShouldReturnBadRequest_WhenInvalid() throws Exception {
+        DailyMissionRequest invalidRequest = DailyMissionRequest.builder()
+                .title("")
+                .build();
+
+        mockMvc.perform(put(BASE_URL + "/{id}", missionId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
