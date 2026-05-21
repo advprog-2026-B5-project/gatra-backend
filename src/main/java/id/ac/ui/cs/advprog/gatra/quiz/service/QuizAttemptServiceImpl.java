@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.article.model.Article;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
+import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.SubmitQuizRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.*;
@@ -35,30 +36,18 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
     @Override
     @Transactional
     public QuizResultResponse submitQuiz(SubmitQuizRequest request) {
+        if (hasUserPassed(request.getUserId(), request.getArticleId())) {
+            throw new IllegalStateException("Sudah lulus kuis ini");
+        }
         // ambil artikel untuk passing score
-        Article article = articleRepository.findById(request.getArticleId()).orElseThrow(() -> new RuntimeException("Article not found"));
+        Article article = articleRepository.findById(request.getArticleId()).orElseThrow(() -> new ResourceNotFoundException("Article", request.getArticleId()));
 
         // ambil semua soal artikel ini
         List<Question> questions = questionRepository.findByArticleId(request.getArticleId());
 
-        List<QuizAnswer> quizAnswers = new ArrayList<>();
-        int correct = 0;
+        List<QuizAnswer> quizAnswers = buildAnswers(request, questions);
+        int correct = (int) quizAnswers.stream().filter(QuizAnswer::getIsCorrect).count();
 
-        for (SubmitQuizRequest.AnswerItem item : request.getAnswers()) {
-            Question question = questions.stream()
-                    .filter(q -> q.getId().equals(item.getQuestionId()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Question not found"));
-
-            boolean isCorrect = checkAnswer(question, item.getAnswer());
-            if (isCorrect) correct++;
-
-            QuizAnswer quizAnswer = new QuizAnswer();
-            quizAnswer.setQuestionId(question.getId());
-            quizAnswer.setUserAnswer(item.getAnswer());
-            quizAnswer.setIsCorrect(isCorrect);
-            quizAnswers.add(quizAnswer);
-        }
 
         float score = questions.isEmpty() ? 0 :
                 ((float) correct / questions.size()) * 100;
@@ -66,16 +55,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         float passingScore = article.getPassingScore();
         boolean passed = score >= passingScore;
 
-        QuizAttempt attempt = new QuizAttempt();
-        attempt.setUserId(request.getUserId());
-        attempt.setArticleId(request.getArticleId());
-        attempt.setScore(Math.round(score));
-        attempt.setPassed(passed);
-
-        // hubungkan answer ke attempt
-        quizAnswers.forEach(a -> a.setAttempt(attempt));
-        attempt.setAnswers(quizAnswers);
-
+        QuizAttempt attempt = buildAttempt(request, score, passed, quizAnswers);
         attemptRepository.save(attempt);
 
         QuizResultResponse response = new QuizResultResponse(score, passingScore, passed, quizAnswers);
@@ -83,25 +63,7 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
         response.setPointsEarned(0.0);
 
         if (passed) {
-            MilestoneResponse milestoneResponse = milestoneService.recordAction(
-                    request.getUserId(), ActionType.FINISH_QUIZ);
-            var completedMissions = missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
-            milestoneResponse.setCompletedMissions(completedMissions);
-            response.setMilestoneResponse(milestoneResponse);
-
-            // Extract Optional check to set pointsEarned safely
-            var membershipOpt = clanMembershipRepository.findFirstByUserIdAndStatus(request.getUserId().toString(), MembershipStatus.APPROVED);
-
-            if (membershipOpt.isPresent()) {
-                pointRecordingService.recordPoints(
-                        request.getUserId().toString(),
-                        membershipOpt.get().getClan().getId(),
-                        100.0, // Passing gets 100 points.
-                        PointActivityType.QUIZ_PASSED,
-                        request.getArticleId().toString()
-                );
-                response.setPointsEarned(100.0);
-            }
+            handlePassedQuiz(request, response);
         }
 
         return response;
@@ -114,5 +76,55 @@ public class QuizAttemptServiceImpl implements QuizAttemptService {
 
     private boolean checkAnswer(Question question, String userAnswer) {
         return question.checkAnswer(userAnswer);
+    }
+
+    private List<QuizAnswer> buildAnswers(SubmitQuizRequest request, List<Question> questions) {
+        List<QuizAnswer> quizAnswers = new ArrayList<>();
+
+        for (SubmitQuizRequest.AnswerItem item : request.getAnswers()) {
+            Question question = questions.stream()
+                    .filter(q -> q.getId().equals(item.getQuestionId()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Question", item.getQuestionId()));
+
+            QuizAnswer quizAnswer = new QuizAnswer();
+            quizAnswer.setQuestionId(question.getId());
+            quizAnswer.setUserAnswer(item.getAnswer());
+            quizAnswer.setIsCorrect(checkAnswer(question,item.getAnswer()));
+            quizAnswers.add(quizAnswer);
+        }
+        return quizAnswers;
+    }
+
+    private QuizAttempt buildAttempt(SubmitQuizRequest request, float score,
+                                     boolean passed, List<QuizAnswer> quizAnswers) {
+        QuizAttempt attempt = new QuizAttempt();
+        attempt.setUserId(request.getUserId());
+        attempt.setArticleId(request.getArticleId());
+        attempt.setScore(Math.round(score));
+        attempt.setPassed(passed);
+        quizAnswers.forEach(a -> a.setAttempt(attempt));
+        attempt.setAnswers(quizAnswers);
+        return attempt;
+    }
+
+    private void handlePassedQuiz(SubmitQuizRequest request, QuizResultResponse response) {
+        MilestoneResponse milestoneResponse = milestoneService.recordAction(request.getUserId(), ActionType.FINISH_QUIZ);
+        var completedMissions = missionProgressService.incrementProgress(request.getUserId(), "FINISH_QUIZ");
+        milestoneResponse.setCompletedMissions(completedMissions);
+        response.setMilestoneResponse(milestoneResponse);
+
+        clanMembershipRepository
+                .findFirstByUserIdAndStatus(request.getUserId().toString(), MembershipStatus.APPROVED)
+                .ifPresent(membership -> {
+                    pointRecordingService.recordPoints(
+                            request.getUserId().toString(),
+                            membership.getClan().getId(),
+                            100.0,
+                            PointActivityType.QUIZ_PASSED,
+                            request.getArticleId().toString()
+                    );
+                    response.setPointsEarned(100.0);
+                });
     }
 }
