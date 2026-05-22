@@ -56,14 +56,19 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9ACCCB41514F44FFA5E23C92837365CF }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_72307C72751C46E6BA7826CCFD328064 }}
 
+      # Step 1: Deploy to Staging (Green)
       - name: Deploy to Azure Web App (Staging Slot)
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'gatra-api-prod'
           slot-name: 'staging'
           package: '*.jar'
 
-      - name: Swap Staging to Production
+      # Step 2: Initiate Swap with Preview
+      - name: Start Swap with Preview
         run: |
-          az webapp deployment slot swap --name gatra-api-prod --resource-group gatra-backend-rg --slot staging --target-slot production
+          az webapp deployment slot swap --name gatra-api-prod \
+          --resource-group gatra-backend-rg \
+          --slot staging \
+          --target-slot production \
+          --action preview
