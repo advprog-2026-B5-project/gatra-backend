@@ -16,6 +16,7 @@ public class ClanServiceImpl implements ClanService {
     private final ClanMembershipRepository membershipRepository;
     private final ClanResponseMapper responseMapper;
     private final ClanValidator validator;
+    private final ClanMetricsService metricsService;
 
     @Override
     @Transactional
@@ -33,7 +34,10 @@ public class ClanServiceImpl implements ClanService {
                 .role(ClanRole.LEADER).status(MembershipStatus.APPROVED)
                 .build());
 
+        metricsService.getClanCreatedCounter().increment();
+
         return responseMapper.toSimpleResponse(clan);
+
     }
 
     @Override
@@ -47,6 +51,7 @@ public class ClanServiceImpl implements ClanService {
         Clan clan = validator.findClanOrThrow(clanId);
         validator.validateLeader(clanId, userId);
         clanRepository.delete(clan);
+        metricsService.getClanDeletedCounter().increment();
     }
 
     @Override
@@ -76,5 +81,7 @@ public class ClanServiceImpl implements ClanService {
         membershipRepository.delete(
                 membershipRepository.findByClanIdAndUserId(clanId, targetUserId)
                         .orElseThrow(() -> new RuntimeException("Target user bukan anggota clan ini.")));
+
+        metricsService.getMembershipKickedCounter().increment();
     }
 }

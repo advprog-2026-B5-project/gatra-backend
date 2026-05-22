@@ -9,9 +9,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import io.micrometer.core.instrument.Counter;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,16 +27,22 @@ class ClanServiceImplTest {
     @Mock private ClanMembershipRepository membershipRepository;
     @Mock private ClanResponseMapper responseMapper;
     @Mock private ClanValidator validator;
+    @Mock private ClanMetricsService metricsService;
 
     @InjectMocks private ClanServiceImpl clanService;
 
     private Clan dummyClan;
     private final String userId = "user-123";
     private final String clanId = "clan-123";
+    private Counter mockCounter;
 
     @BeforeEach
     void setUp() {
+        mockCounter = mock(Counter.class);
         dummyClan = Clan.builder().id(clanId).name("Test Clan").description("Desc").tier("BRONZE").build();
+        lenient().when(metricsService.getClanCreatedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getClanDeletedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipKickedCounter()).thenReturn(mockCounter);
     }
 
     @Test

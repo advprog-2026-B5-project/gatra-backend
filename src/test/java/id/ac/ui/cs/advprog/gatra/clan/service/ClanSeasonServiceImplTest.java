@@ -3,6 +3,8 @@ package id.ac.ui.cs.advprog.gatra.clan.service;
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.event.SeasonEndedEvent;
 import id.ac.ui.cs.advprog.gatra.clan.model.SeasonSnapshot;
+import io.micrometer.core.instrument.Counter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ClanSeasonServiceImplTest {
@@ -25,8 +28,17 @@ class ClanSeasonServiceImplTest {
     @Mock private SeasonSnapshotMapper snapshotMapper;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private TierMigrationService tierMigrationService;
+    @Mock private ClanMetricsService metricsService;
 
     @InjectMocks private ClanSeasonServiceImpl clanSeasonService;
+
+    private Counter mockCounter;
+
+    @BeforeEach
+    void setUp() {
+        mockCounter = mock(Counter.class);
+        lenient().when(metricsService.getSeasonResetCounter()).thenReturn(mockCounter);
+    }
 
     @Test
     void endSeason_success() {

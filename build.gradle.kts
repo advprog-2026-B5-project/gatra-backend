@@ -4,6 +4,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     jacoco
     id("org.sonarqube") version "7.2.2.6593"
+    id("net.serenity-bdd.serenity-gradle-plugin") version "4.0.12"
 }
 
 group = "id.ac.ui.cs.advprog"

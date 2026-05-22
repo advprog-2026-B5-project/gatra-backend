@@ -30,42 +30,34 @@ public class BuffDebuffServiceImpl implements BuffDebuffService {
 
     @Override
     public ScoreCalculator buildCalculator(String clanId) {
-        double completionRate = calculateMissionCompletionRate(clanId);
-        double avgAccuracy = calculateAverageQuizAccuracy(clanId);
+        List<ClanMembership> members = membershipRepository
+                .findByClanIdAndStatus(clanId, MembershipStatus.APPROVED);
+
+        double completionRate = calculateMissionCompletionRate(members);
+        double avgAccuracy = calculateAverageQuizAccuracy(members);
 
         ScoreCalculator calculator = new BaseScoreCalculator(clanScoringService);
-
-        if (completionRate >= 0.5) {
-            calculator = new BuffDecorator(calculator);
-        }
-        if (avgAccuracy < 0.5) {
-            calculator = new DebuffDecorator(calculator);
-        }
-
+        if (completionRate >= 0.5) calculator = new BuffDecorator(calculator);
+        if (avgAccuracy < 0.5) calculator = new DebuffDecorator(calculator);
         return calculator;
     }
 
-    private double calculateMissionCompletionRate(String clanId) {
-        List<ClanMembership> members = membershipRepository
-                .findByClanIdAndStatus(clanId, MembershipStatus.APPROVED);
+    private double calculateMissionCompletionRate(List<ClanMembership> members) {
         if (members.isEmpty()) return NO_MEMBERS_RATE;
-
         long completed = members.stream()
                 .filter(m -> missionCompletionChecker.hasCompletedAnyMission(m.getUserId()))
                 .count();
         return (double) completed / members.size();
     }
 
-    private double calculateAverageQuizAccuracy(String clanId) {
-        List<ClanMembership> members = membershipRepository
-                .findByClanIdAndStatus(clanId, MembershipStatus.APPROVED);
-        if (members.isEmpty()) return 1.0; // no members = no debuff
-
+    private double calculateAverageQuizAccuracy(List<ClanMembership> members) {
+        if (members.isEmpty()) return 1.0;
         return members.stream()
                 .mapToDouble(m -> getAccuracyForUser(m.getUserId()))
                 .average()
                 .orElse(1.0);
     }
+
 
     private double getAccuracyForUser(String userId) {
         List<QuizAttempt> attempts = quizAttemptRepository

@@ -20,6 +20,7 @@ public class ClanSeasonServiceImpl implements ClanSeasonService {
     private final SeasonSnapshotMapper snapshotMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final TierMigrationService tierMigrationService;
+    private final ClanMetricsService metricsService;
 
     @Override
     @Transactional
@@ -32,6 +33,7 @@ public class ClanSeasonServiceImpl implements ClanSeasonService {
         tierMigrationService.migrate(leaderboards);
         eventPublisher.publishEvent(new SeasonEndedEvent(leaderboards));
 
+        metricsService.getSeasonResetCounter().increment();
         return SeasonResultResponse.builder()
                 .seasonNumber(seasonNumber)
                 .frozenAt(now)
