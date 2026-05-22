@@ -12,6 +12,6 @@ public class UpdateUserRequest {
     private String displayName;
 
     // Validasi Opsional: Hanya boleh berisi angka, minimal 10 digit, maksimal 15 digit
-    @Pattern(regexp = "^[0-9]{10,15}$", message = "Format nomor HP tidak valid (hanya angka, 10-15 digit)")
+    @Pattern(regexp = "^\\d{10,15}$", message = "Format nomor HP tidak valid (hanya angka, 10-15 digit)")
     private String phoneNumber;
 }

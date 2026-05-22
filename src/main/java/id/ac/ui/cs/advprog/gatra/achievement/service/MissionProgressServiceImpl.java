@@ -47,7 +47,7 @@ public class MissionProgressServiceImpl implements MissionProgressService {
                             .orElse(null);
                     return progressMapper.toResponse(mission, progress);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class MissionProgressServiceImpl implements MissionProgressService {
         List<DailyMission> matchingMissions = dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)
                 .stream()
                 .filter(m -> m.getActionType() == type)
-                .collect(Collectors.toList());
+                .toList();
 
         List<MissionProgressResponse> newlyCompleted = new ArrayList<>();
 
