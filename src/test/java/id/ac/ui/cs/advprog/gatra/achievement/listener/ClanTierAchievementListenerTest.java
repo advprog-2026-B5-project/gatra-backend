@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.gatra.achievement.listener;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.service.UserAchievementService;
-import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedDiamondEvent;
+import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedHighestTierEvent;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,10 +53,10 @@ class ClanTierAchievementListenerTest {
 
     @Test
     void testOnClanReachedDiamond_Success() {
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(this, clanId, memberIds);
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(this, clanId, memberIds);
         when(achievementRepository.findByName("Diamond Clan")).thenReturn(Optional.of(diamondAchievement));
 
-        listener.onClanReachedDiamond(event);
+        listener.onClanReachedHighestTier(event);
 
         verify(achievementRepository, times(1)).findByName("Diamond Clan");
         verify(userAchievementService, times(memberIds.size())).unlockIfNotYet(any(UUID.class), eq(diamondAchievement));
@@ -68,11 +68,11 @@ class ClanTierAchievementListenerTest {
 
     @Test
     void testOnClanReachedDiamond_AchievementNotFound_ThrowsException() {
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(this, clanId, memberIds);
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(this, clanId, memberIds);
         when(achievementRepository.findByName("Diamond Clan")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            listener.onClanReachedDiamond(event);
+            listener.onClanReachedHighestTier(event);
         });
 
         verify(userAchievementService, never()).unlockIfNotYet(any(), any());
@@ -80,10 +80,10 @@ class ClanTierAchievementListenerTest {
 
     @Test
     void testOnClanReachedDiamond_EmptyMemberIds_DoesNothing() {
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(this, clanId, List.of());
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(this, clanId, List.of());
         when(achievementRepository.findByName("Diamond Clan")).thenReturn(Optional.of(diamondAchievement));
 
-        listener.onClanReachedDiamond(event);
+        listener.onClanReachedHighestTier(event);
 
         verify(achievementRepository, times(1)).findByName("Diamond Clan");
         verify(userAchievementService, never()).unlockIfNotYet(any(), any());
@@ -92,11 +92,11 @@ class ClanTierAchievementListenerTest {
     @Test
     void testOnClanReachedDiamond_InvalidUuidFormat_ThrowsException() {
         List<String> invalidIds = List.of("uuid-tidak-valid");
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(this, clanId, invalidIds);
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(this, clanId, invalidIds);
         when(achievementRepository.findByName("Diamond Clan")).thenReturn(Optional.of(diamondAchievement));
 
         assertThrows(IllegalArgumentException.class, () -> {
-            listener.onClanReachedDiamond(event);
+            listener.onClanReachedHighestTier(event);
         });
     }
 }

@@ -13,13 +13,13 @@ public class SeasonController {
 
     private final ClanSeasonService seasonService;
 
-    @PostMapping("/end")
-    public ResponseEntity<SeasonResultResponse> endSeason() {
-        return ResponseEntity.ok(seasonService.endSeason());
-    }
-
     @GetMapping("/last")
     public ResponseEntity<SeasonResultResponse> getLastSeason() {
         return ResponseEntity.ok(seasonService.getLastSeasonResult());
+    }
+
+    @PostMapping("/end")
+    public ResponseEntity<SeasonResultResponse> endSeason() {
+        return ResponseEntity.ok(seasonService.endSeason());
     }
 }
