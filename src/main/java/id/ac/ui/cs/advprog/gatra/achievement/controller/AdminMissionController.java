@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.gatra.achievement.controller;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionRequest;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.DailyMissionResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.service.DailyMissionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class AdminMissionController {
     private final DailyMissionService dailyMissionService;
 
     @PostMapping
-    public ResponseEntity<DailyMissionResponse> createMission(@RequestBody DailyMissionRequest request) {
+    public ResponseEntity<DailyMissionResponse> createMission(@Valid @RequestBody DailyMissionRequest request) {
         return new ResponseEntity<>(dailyMissionService.createMission(request), HttpStatus.CREATED);
     }
 
@@ -36,7 +37,7 @@ public class AdminMissionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DailyMissionResponse> updateMission(@PathVariable UUID id, @RequestBody DailyMissionRequest request) {
+    public ResponseEntity<DailyMissionResponse> updateMission(@PathVariable UUID id, @Valid @RequestBody DailyMissionRequest request) {
         return ResponseEntity.ok(dailyMissionService.updateMission(id, request));
     }
 

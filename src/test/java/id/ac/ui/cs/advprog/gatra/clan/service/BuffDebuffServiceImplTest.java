@@ -43,7 +43,7 @@ class BuffDebuffServiceImplTest {
     // Helper
     private ClanMembership member(String userId) {
         return ClanMembership.builder()
-                .userId(VALID_UUID)
+                .userId(userId)
                 .build();
     }
 

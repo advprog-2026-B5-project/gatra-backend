@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.achievement.seed;
 
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.AchievementConstants;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +23,13 @@ public class AchievementSeeder implements ApplicationRunner {
     }
 
     private void seedDiamondClanAchievement() {
-        if (achievementRepository.existsByName("Diamond Clan")) {
-            log.info("Achievement 'Diamond Clan' already exists");
+        if (achievementRepository.existsByName(AchievementConstants.DIAMOND_CLAN_ACHIEVEMENT_NAME)) {
+            log.info("Achievement '{}' already exists", AchievementConstants.DIAMOND_CLAN_ACHIEVEMENT_NAME);
             return;
         }
 
         achievementRepository.save(Achievement.builder()
-                .name("Diamond Clan")
+                .name(AchievementConstants.DIAMOND_CLAN_ACHIEVEMENT_NAME)
                 .category(ActionType.HIGHEST_TIER)
                 .milestoneThreshold(1)
                 .description("Mencapai tier diamond bersama clan")

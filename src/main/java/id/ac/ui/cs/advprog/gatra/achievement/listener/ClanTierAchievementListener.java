@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.achievement.listener;
 
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
+import id.ac.ui.cs.advprog.gatra.achievement.model.AchievementConstants;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.service.UserAchievementService;
 import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedHighestTierEvent;
@@ -23,8 +24,8 @@ public class ClanTierAchievementListener {
     @Transactional
     public void onClanReachedHighestTier(ClanReachedHighestTierEvent event) {
         Achievement diamondAchievement = achievementRepository
-                .findByName("Diamond Clan")
-                .orElseThrow(() -> new ResourceNotFoundException("Achievement", "Diamond Clan"));
+                .findByName(AchievementConstants.DIAMOND_CLAN_ACHIEVEMENT_NAME)
+                .orElseThrow(() -> new ResourceNotFoundException("Achievement", AchievementConstants.DIAMOND_CLAN_ACHIEVEMENT_NAME));
 
         for (String memberId : event.getMemberIds()) {
             UUID userId = UUID.fromString(memberId);

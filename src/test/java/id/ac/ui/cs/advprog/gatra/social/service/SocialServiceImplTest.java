@@ -78,7 +78,6 @@ class SocialServiceImplTest {
     @Test
     void getPublicProfile_Success() {
         String username = "anya";
-        UUID userId = UUID.randomUUID();
         User mockUser = User.builder().id(userId).username(username).build();
         StudentProfile mockProfile = StudentProfile.builder().currentLeagueTier("Gold").build();
 
