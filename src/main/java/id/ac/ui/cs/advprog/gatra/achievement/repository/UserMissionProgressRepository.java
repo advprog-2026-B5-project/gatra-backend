@@ -13,4 +13,5 @@ public interface UserMissionProgressRepository extends JpaRepository<UserMission
     List<UserMissionProgress> findByUserId(UUID userId);
     Optional<UserMissionProgress> findByUserIdAndMissionId(UUID userId, UUID missionId);
     void deleteByUserId(UUID userId);
+    long countByIsClaimedTrue();
 }
