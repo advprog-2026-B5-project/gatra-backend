@@ -159,8 +159,9 @@ class ClanScoringServiceImplTest {
         when(pointHistoryRepository.sumPointsByClanId(clanId)).thenReturn(500.0);
 
         // Assert that passing an unsupported tier name throws the proper exception
+        List<ScoreModifier> emptyModifiers = List.of();
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            clanScoringService.calculateClanScore(clanId, "PLATINUM", List.of());
+            clanScoringService.calculateClanScore(clanId, "PLATINUM", emptyModifiers);
         });
 
         assertEquals("Unsupported clan tier: PLATINUM", exception.getMessage());

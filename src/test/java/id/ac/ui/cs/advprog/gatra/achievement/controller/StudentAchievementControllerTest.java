@@ -30,34 +30,34 @@ class StudentAchievementControllerTest {
     @InjectMocks
     private StudentAchievementController studentController;
 
-    private final String USERNAME = "roselia.evanny";
+    private final String username = "roselia.evanny";
     private UUID achievementId;
 
     @BeforeEach
     void setUp() {
         achievementId = UUID.randomUUID();
-        when(userDetails.getUsername()).thenReturn(USERNAME);
+        when(userDetails.getUsername()).thenReturn(username);
     }
 
     @Test
     void getMyAchievements_shouldReturnOk() {
         AchievementResponse response = AchievementResponse.builder().name("My Achievement").build();
-        when(userAchievementService.getMyAchievements(USERNAME)).thenReturn(List.of(response));
+        when(userAchievementService.getMyAchievements(username)).thenReturn(List.of(response));
 
         ResponseEntity<List<AchievementResponse>> result = studentController.getMyAchievements(userDetails);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(1, result.getBody().size());
-        verify(userAchievementService, times(1)).getMyAchievements(USERNAME);
+        verify(userAchievementService, times(1)).getMyAchievements(username);
     }
 
     @Test
     void toggleDisplayAchievement_shouldReturnNoContent() {
-        doNothing().when(userAchievementService).toggleDisplayAchievement(USERNAME, achievementId, true);
+        doNothing().when(userAchievementService).toggleDisplayAchievement(username, achievementId, true);
 
         ResponseEntity<Void> result = studentController.toggleDisplayAchievement(achievementId, true, userDetails);
 
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
-        verify(userAchievementService, times(1)).toggleDisplayAchievement(USERNAME, achievementId, true);
+        verify(userAchievementService, times(1)).toggleDisplayAchievement(username, achievementId, true);
     }
 }

@@ -25,6 +25,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final String ROLE_ADMIN = "ADMIN";
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
 
@@ -41,14 +43,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/users").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.PATCH, "/api/achievements/*/display").hasAnyRole("STUDENT", "USER")
                         .requestMatchers("/api/achievements/me", "/api/achievements/me/**").authenticated()
                         .requestMatchers("/api/missions/**").authenticated()
-                        .requestMatchers("/api/achievements/**").hasRole("ADMIN")
+                        .requestMatchers("/api/achievements/**").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET, "/clans").permitAll()
                         .requestMatchers(HttpMethod.GET, "/clans/{id}").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/clans/season/end").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/clans/season/end").hasRole(ROLE_ADMIN)
                         .requestMatchers(HttpMethod.GET, "/clans/season/last").permitAll()
                         .anyRequest().authenticated()
                 )

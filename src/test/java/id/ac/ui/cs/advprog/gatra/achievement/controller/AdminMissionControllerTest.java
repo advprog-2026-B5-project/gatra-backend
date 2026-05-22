@@ -52,7 +52,7 @@ class AdminMissionControllerTest {
     private DailyMissionRequest request;
     private DailyMissionResponse response;
     private UUID missionId;
-    private final String BASE_URL = "/api/admin/missions";
+    private final String baseUrl = "/api/admin/missions";
 
     @BeforeEach
     void setUp() {
@@ -83,7 +83,7 @@ class AdminMissionControllerTest {
     void createMission_ShouldReturnCreated() throws Exception {
         when(dailyMissionService.createMission(any(DailyMissionRequest.class))).thenReturn(response);
 
-        mockMvc.perform(post(BASE_URL)
+        mockMvc.perform(post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -103,7 +103,7 @@ class AdminMissionControllerTest {
                 .status("")
                 .build();
 
-        mockMvc.perform(post(BASE_URL)
+        mockMvc.perform(post(baseUrl)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -114,7 +114,7 @@ class AdminMissionControllerTest {
     void getAllMissions_ShouldReturnList() throws Exception {
         when(dailyMissionService.getAllMissions()).thenReturn(List.of(response));
 
-        mockMvc.perform(get(BASE_URL))
+        mockMvc.perform(get(baseUrl))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].title").value("Misi Baca"));
@@ -125,7 +125,7 @@ class AdminMissionControllerTest {
     void getMissionById_ShouldReturnOk_WhenFound() throws Exception {
         when(dailyMissionService.getMissionById(missionId)).thenReturn(response);
 
-        mockMvc.perform(get(BASE_URL + "/{id}", missionId))
+        mockMvc.perform(get(baseUrl + "/{id}", missionId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(missionId.toString()));
     }
@@ -136,7 +136,7 @@ class AdminMissionControllerTest {
         when(dailyMissionService.getMissionById(missionId))
                 .thenThrow(new ResourceNotFoundException("DailyMission", missionId));
 
-        mockMvc.perform(get(BASE_URL + "/{id}", missionId))
+        mockMvc.perform(get(baseUrl + "/{id}", missionId))
                 .andExpect(status().isNotFound());
     }
 
@@ -145,7 +145,7 @@ class AdminMissionControllerTest {
     void updateMission_ShouldReturnOk() throws Exception {
         when(dailyMissionService.updateMission(eq(missionId), any(DailyMissionRequest.class))).thenReturn(response);
 
-        mockMvc.perform(put(BASE_URL + "/{id}", missionId)
+        mockMvc.perform(put(baseUrl + "/{id}", missionId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -159,7 +159,7 @@ class AdminMissionControllerTest {
                 .title("")
                 .build();
 
-        mockMvc.perform(put(BASE_URL + "/{id}", missionId)
+        mockMvc.perform(put(baseUrl + "/{id}", missionId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -168,7 +168,7 @@ class AdminMissionControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void deleteMission_ShouldReturnNoContent() throws Exception {
-        mockMvc.perform(delete(BASE_URL + "/{id}", missionId))
+        mockMvc.perform(delete(baseUrl + "/{id}", missionId))
                 .andExpect(status().isNoContent());
     }
 }

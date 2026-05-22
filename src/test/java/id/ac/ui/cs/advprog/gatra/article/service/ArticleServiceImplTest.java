@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -153,10 +152,11 @@ class ArticleServiceImplTest {
 
     @Test
     void getArticleById_whenDeleted_shouldThrowException() {
-        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+        UUID deletedId = deletedArticle.getId();
+        when(articleRepository.findById(deletedId)).thenReturn(Optional.of(deletedArticle));
 
         assertThrows(ResourceNotFoundException.class,
-                () -> articleService.getArticleById(deletedArticle.getId()));
+                () -> articleService.getArticleById(deletedId));
 
         verify(articleMapper, never()).toResponse(any());
     }
@@ -270,10 +270,11 @@ class ArticleServiceImplTest {
 
     @Test
     void deleteArticle_whenAlreadyDeleted_shouldThrowIllegalStateException() {
-        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+        UUID deletedId = deletedArticle.getId();
+        when(articleRepository.findById(deletedId)).thenReturn(Optional.of(deletedArticle));
 
         assertThrows(IllegalStateException.class,
-                () -> articleService.deleteArticle(deletedArticle.getId(), DUMMY_USERNAME));
+                () -> articleService.deleteArticle(deletedId, DUMMY_USERNAME));
 
         verify(articleRepository, never()).save(any());
     }

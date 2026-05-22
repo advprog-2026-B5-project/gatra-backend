@@ -21,7 +21,7 @@ public class UserController {
     private final UserService userService;
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
         try {
             userService.deleteUserById(id);
             return ResponseEntity.ok("User berhasil dihapus beserta profilnya");
@@ -33,7 +33,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editUser(
+    public ResponseEntity<Object> editUser(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserRequest request // Gunakan @Valid dan DTO di sini
     ) {
@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<Object> getUserById(@PathVariable UUID id) {
         try {
             UserResponse response = userService.getUserById(id);
             return ResponseEntity.ok(response);

@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
+    private static final String USER_NOT_FOUND_MSG = "User tidak ditemukan";
+
     private final UserRepository userRepository;
     private final StudentProfileRepository studentProfileRepository;
     private final PointHistoryRepository pointHistoryRepository;
@@ -46,7 +48,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User updateUser(UUID userId, String newDisplayName, String newPhoneNumber) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_MSG));
 
         Optional.ofNullable(newDisplayName)
                 .filter(s -> !s.trim().isEmpty())
@@ -113,7 +115,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserById(UUID id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_MSG));
 
         // Fetch profile for the league tier (if it exists)
         StudentProfile profile = studentProfileRepository.findById(id).orElse(null);
@@ -134,15 +136,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserEntityById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User tidak ditemukan"));
-        return user;
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(USER_NOT_FOUND_MSG));
     }
 
     @Override
     public User getUserEntityByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        return userRepository.findByUsername(username)
             .orElseThrow(() -> new ResourceNotFoundException("User", username));
-        return user;
     }
 }

@@ -1,7 +1,6 @@
 package id.ac.ui.cs.advprog.gatra.quiz.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
