@@ -1,10 +1,8 @@
 package id.ac.ui.cs.advprog.gatra.clan.service;
-import id.ac.ui.cs.advprog.gatra.clan.decorator.ScoreCalculator;
+
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
-import id.ac.ui.cs.advprog.gatra.auth.model.User;
-import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,22 +15,21 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClanServiceImplTest {
+
     @Mock private ClanRepository clanRepository;
     @Mock private ClanMembershipRepository membershipRepository;
-    @Mock private UserRepository userRepository;
-    @Mock private BuffDebuffService buffDebuffService;
-
+    @Mock private ClanResponseMapper responseMapper;
+    @Mock private ClanValidator validator;
 
     @InjectMocks private ClanServiceImpl clanService;
 
     private Clan dummyClan;
-    private String userId = "user-123";
-    private String clanId = "clan-123";
+    private final String userId = "user-123";
+    private final String clanId = "clan-123";
 
     @BeforeEach
     void setUp() {
@@ -45,34 +42,37 @@ class ClanServiceImplTest {
         req.setName("Test Clan");
         req.setDescription("Desc");
 
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(false);
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(false);
+        ClanResponse expected = ClanResponse.builder().id(clanId).name("Test Clan").build();
+
+        doNothing().when(validator).validateUserNotInAnyClan(userId);
         when(clanRepository.save(any(Clan.class))).thenReturn(dummyClan);
         when(membershipRepository.save(any(ClanMembership.class))).thenReturn(new ClanMembership());
-        when(membershipRepository.countByClanIdAndStatus(any(), eq(MembershipStatus.APPROVED))).thenReturn(1L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        when(responseMapper.toSimpleResponse(any(Clan.class))).thenReturn(expected);
 
         ClanResponse res = clanService.createClan(req, userId);
 
         assertNotNull(res);
         assertEquals("Test Clan", res.getName());
-        verify(clanRepository, times(1)).save(any(Clan.class));
-        verify(membershipRepository, times(1)).save(any(ClanMembership.class));
+        verify(clanRepository).save(any(Clan.class));
+        verify(membershipRepository).save(any(ClanMembership.class));
+        verify(responseMapper).toSimpleResponse(any(Clan.class));
     }
 
     @Test
-    void createClan_shouldThrowWhenUserAlreadyInClan() {
-        CreateClanRequest req = new CreateClanRequest();
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(true);
+    void createClan_userAlreadyInClan_throws() {
+        doThrow(new RuntimeException("Sudah dalam clan."))
+                .when(validator).validateUserNotInAnyClan(userId);
 
-        assertThrows(RuntimeException.class, () -> clanService.createClan(req, userId));
+        assertThrows(RuntimeException.class, () -> clanService.createClan(new CreateClanRequest(), userId));
+        verify(clanRepository, never()).save(any());
     }
 
     @Test
     void getClan_success() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(5L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
+        ClanResponse expected = ClanResponse.builder().id(clanId).memberCount(5).score(100.0).build();
+
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        when(responseMapper.toSimpleResponse(dummyClan)).thenReturn(expected);
 
         ClanResponse res = clanService.getClan(clanId);
 
@@ -83,132 +83,173 @@ class ClanServiceImplTest {
     }
 
     @Test
+    void getClan_notFound_throws() {
+        doThrow(new RuntimeException("Clan tidak ditemukan."))
+                .when(validator).findClanOrThrow(clanId);
+
+        assertThrows(RuntimeException.class, () -> clanService.getClan(clanId));
+    }
+
+
+    @Test
     void deleteClan_success() {
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(leaderMembership));
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doNothing().when(validator).validateLeader(clanId, userId);
 
         clanService.deleteClan(clanId, userId);
 
-        verify(clanRepository, times(1)).delete(dummyClan);
+        verify(clanRepository).delete(dummyClan);
     }
 
     @Test
+    void deleteClan_notFound_throws() {
+        doThrow(new RuntimeException("Clan tidak ditemukan."))
+                .when(validator).findClanOrThrow(clanId);
+
+        assertThrows(RuntimeException.class, () -> clanService.deleteClan(clanId, userId));
+        verify(clanRepository, never()).delete(any());
+    }
+
+    @Test
+    void deleteClan_notLeader_throws() {
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doThrow(new RuntimeException("Bukan ketua clan."))
+                .when(validator).validateLeader(clanId, userId);
+
+        assertThrows(RuntimeException.class, () -> clanService.deleteClan(clanId, userId));
+        verify(clanRepository, never()).delete(any());
+    }
+
+    @Test
+    void getAllClans_success() {
+        ClanResponse expected = ClanResponse.builder().id(clanId).build();
+        when(clanRepository.findAll()).thenReturn(List.of(dummyClan));
+        when(responseMapper.toSimpleResponse(dummyClan)).thenReturn(expected);
+
+        List<ClanResponse> res = clanService.getAllClans();
+
+        assertEquals(1, res.size());
+        assertEquals(clanId, res.get(0).getId());
+    }
+
+    @Test
+    void getAllClans_empty_returnsEmptyList() {
+        when(clanRepository.findAll()).thenReturn(List.of());
+
+        List<ClanResponse> res = clanService.getAllClans();
+
+        assertTrue(res.isEmpty());
+        verify(responseMapper, never()).toSimpleResponse(any());
+    }
+
+
+    @Test
     void getMyClan_whenApproved() {
-        ClanMembership membership = ClanMembership.builder().clan(dummyClan).userId(userId).role(ClanRole.LEADER).status(MembershipStatus.APPROVED).build();
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.of(membership));
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
-        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(List.of(membership));
-        
-        User dummyUser = new User();
-        dummyUser.setDisplayName("Test User");
-        when(userRepository.findByStringId(any())).thenReturn(Optional.of(dummyUser));
+        ClanMembership membership = ClanMembership.builder()
+                .clan(dummyClan).userId(userId).role(ClanRole.LEADER)
+                .status(MembershipStatus.APPROVED).build();
+        ClanResponse expected = ClanResponse.builder().id(clanId).myRole("LEADER").build();
+
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED))
+                .thenReturn(Optional.of(membership));
+        when(responseMapper.toApprovedMemberResponse(membership)).thenReturn(expected);
 
         ClanResponse res = clanService.getMyClan(userId);
 
         assertNotNull(res);
         assertEquals(clanId, res.getId());
         assertEquals("LEADER", res.getMyRole());
+        verify(responseMapper).toApprovedMemberResponse(membership);
+    }
+
+    @Test
+    void getMyClan_whenPending() {
+        ClanMembership pending = ClanMembership.builder()
+                .clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).build();
+        ClanResponse expected = ClanResponse.builder().id(clanId)
+                .membershipStatus(MembershipStatus.PENDING.name()).build();
+
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED))
+                .thenReturn(Optional.empty());
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.PENDING))
+                .thenReturn(Optional.of(pending));
+        when(responseMapper.toPendingResponse(pending)).thenReturn(expected);
+
+        ClanResponse res = clanService.getMyClan(userId);
+
+        assertNotNull(res);
+        assertEquals(MembershipStatus.PENDING.name(), res.getMembershipStatus());
+        verify(responseMapper).toPendingResponse(pending);
+    }
+
+    @Test
+    void getMyClan_whenNull() {
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED))
+                .thenReturn(Optional.empty());
+        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.PENDING))
+                .thenReturn(Optional.empty());
+
+        assertNull(clanService.getMyClan(userId));
+        verify(responseMapper, never()).toApprovedMemberResponse(any());
+        verify(responseMapper, never()).toPendingResponse(any());
     }
 
     @Test
     void kickMember_success() {
         String targetUserId = "target-123";
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
         ClanMembership targetMembership = ClanMembership.builder().userId(targetUserId).build();
 
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(leaderMembership));
-        when(membershipRepository.findByClanIdAndUserId(clanId, targetUserId)).thenReturn(Optional.of(targetMembership));
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doNothing().when(validator).validateLeader(clanId, userId);
+        doNothing().when(validator).validateNotSelfKick(userId, targetUserId);
+        when(membershipRepository.findByClanIdAndUserId(clanId, targetUserId))
+                .thenReturn(Optional.of(targetMembership));
 
         clanService.kickMember(clanId, targetUserId, userId);
 
-        verify(membershipRepository, times(1)).delete(targetMembership);
-    }
-    @Test
-    void createClan_shouldThrowWhenUserPending() {
-        CreateClanRequest req = new CreateClanRequest();
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(false);
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(true);
-        assertThrows(RuntimeException.class, () -> clanService.createClan(req, userId));
+        verify(membershipRepository).delete(targetMembership);
     }
 
     @Test
-    void getClan_throwsWhenNotFound() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> clanService.getClan(clanId));
-    }
+    void kickMember_clanNotFound_throws() {
+        doThrow(new RuntimeException("Clan tidak ditemukan."))
+                .when(validator).findClanOrThrow(clanId);
 
-    @Test
-    void deleteClan_throwsWhenNotFound() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> clanService.deleteClan(clanId, userId));
-    }
-
-    @Test
-    void deleteClan_throwsWhenNotLeader() {
-        ClanMembership mem = ClanMembership.builder().role(ClanRole.MEMBER).build();
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(mem));
-        assertThrows(RuntimeException.class, () -> clanService.deleteClan(clanId, userId));
-    }
-
-    @Test
-    void getAllClans_success() {
-        when(clanRepository.findAll()).thenReturn(List.of(dummyClan));
-        when(membershipRepository.countByClanIdAndStatus(clanId, MembershipStatus.APPROVED)).thenReturn(1L);
-        when(buffDebuffService.buildCalculator(any())).thenReturn((clanId, tier) -> 100.0);
-
-        List<ClanResponse> list = clanService.getAllClans();
-        assertEquals(1, list.size());
-    }
-
-    @Test
-    void getMyClan_whenPending() {
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.empty());
-        ClanMembership pending = ClanMembership.builder().clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).build();
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(Optional.of(pending));
-
-        ClanResponse res = clanService.getMyClan(userId);
-        assertNotNull(res);
-        assertEquals(MembershipStatus.PENDING.name(), res.getMembershipStatus());
-    }
-
-    @Test
-    void getMyClan_whenNull() {
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(Optional.empty());
-        when(membershipRepository.findByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(Optional.empty());
-        assertNull(clanService.getMyClan(userId));
-    }
-
-    @Test
-    void kickMember_throwsWhenClanNotFound() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> clanService.kickMember(clanId, "target", userId));
+        verify(membershipRepository, never()).delete(any());
     }
 
     @Test
-    void kickMember_throwsWhenNotLeader() {
-        ClanMembership mem = ClanMembership.builder().role(ClanRole.MEMBER).build();
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(mem));
+    void kickMember_notLeader_throws() {
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doThrow(new RuntimeException("Bukan ketua clan."))
+                .when(validator).validateLeader(clanId, userId);
+
         assertThrows(RuntimeException.class, () -> clanService.kickMember(clanId, "target", userId));
+        verify(membershipRepository, never()).delete(any());
     }
 
     @Test
-    void kickMember_throwsWhenSelfKick() {
-        ClanMembership mem = ClanMembership.builder().role(ClanRole.LEADER).build();
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(mem));
+    void kickMember_selfKick_throws() {
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doNothing().when(validator).validateLeader(clanId, userId);
+        doThrow(new RuntimeException("Tidak bisa kick diri sendiri."))
+                .when(validator).validateNotSelfKick(userId, userId);
+
         assertThrows(RuntimeException.class, () -> clanService.kickMember(clanId, userId, userId));
+        verify(membershipRepository, never()).delete(any());
     }
 
     @Test
-    void kickMember_throwsWhenTargetNotMember() {
-        ClanMembership mem = ClanMembership.builder().role(ClanRole.LEADER).build();
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(mem));
-        when(membershipRepository.findByClanIdAndUserId(clanId, "target")).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> clanService.kickMember(clanId, "target", userId));
+    void kickMember_targetNotMember_throws() {
+        String targetUserId = "target-123";
+
+        when(validator.findClanOrThrow(clanId)).thenReturn(dummyClan);
+        doNothing().when(validator).validateLeader(clanId, userId);
+        doNothing().when(validator).validateNotSelfKick(userId, targetUserId);
+        when(membershipRepository.findByClanIdAndUserId(clanId, targetUserId))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> clanService.kickMember(clanId, targetUserId, userId));
     }
 }

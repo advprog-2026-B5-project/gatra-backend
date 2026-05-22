@@ -37,8 +37,12 @@ public class ClanMembershipController {
             @PathVariable String applicantId,
             @Valid @RequestBody MembershipDecisionRequest request,
             @RequestAttribute("userId") String leaderId) {
+
+        request.setClanId(clanId);
+        request.setApplicantId(applicantId);
+
         return ResponseEntity.ok(
-                membershipService.decideMembership(clanId, applicantId, request, leaderId));
+                membershipService.decideMembership(request));
     }
 
     @DeleteMapping

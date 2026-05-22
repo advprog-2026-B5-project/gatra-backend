@@ -26,7 +26,7 @@ public class BuffDebuffServiceImpl implements BuffDebuffService {
     private final ClanMembershipRepository membershipRepository;
     private final MissionCompletionChecker missionCompletionChecker;
     private final ClanScoringService clanScoringService;
-    private final QuizAttemptRepository quizAttemptRepository; // ← ini yang replace method gaib
+    private final QuizAttemptRepository quizAttemptRepository;
 
     @Override
     public ScoreCalculator buildCalculator(String clanId) {
@@ -61,12 +61,10 @@ public class BuffDebuffServiceImpl implements BuffDebuffService {
                 .findByClanIdAndStatus(clanId, MembershipStatus.APPROVED);
         if (members.isEmpty()) return 1.0; // no members = no debuff
 
-        double totalAccuracy = members.stream()
+        return members.stream()
                 .mapToDouble(m -> getAccuracyForUser(m.getUserId()))
                 .average()
                 .orElse(1.0);
-
-        return totalAccuracy;
     }
 
     private double getAccuracyForUser(String userId) {

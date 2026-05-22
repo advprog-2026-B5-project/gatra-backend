@@ -3,7 +3,7 @@ package id.ac.ui.cs.advprog.gatra.achievement.listener;
 import id.ac.ui.cs.advprog.gatra.achievement.model.Achievement;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.AchievementRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.service.UserAchievementService;
-import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedDiamondEvent;
+import id.ac.ui.cs.advprog.gatra.clan.event.ClanReachedHighestTierEvent;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -21,7 +21,7 @@ public class ClanTierAchievementListener {
 
     @EventListener
     @Transactional
-    public void onClanReachedDiamond(ClanReachedDiamondEvent event) {
+    public void onClanReachedHighestTier(ClanReachedHighestTierEvent event) {
         Achievement diamondAchievement = achievementRepository
                 .findByName("Diamond Clan")
                 .orElseThrow(() -> new ResourceNotFoundException("Achievement", "Diamond Clan"));

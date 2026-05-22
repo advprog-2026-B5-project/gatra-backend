@@ -3,7 +3,6 @@ package id.ac.ui.cs.advprog.gatra.clan.service;
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,148 +18,177 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ClanMembershipServiceImplTest {
+
     @Mock private ClanRepository clanRepository;
     @Mock private ClanMembershipRepository membershipRepository;
+    @Mock private ClanValidator validator;
 
     @InjectMocks private ClanMembershipServiceImpl membershipService;
 
-    private Clan dummyClan;
-    private String clanId = "clan-123";
-    private String userId = "user-123";
-    private String leaderId = "leader-123";
-
-    @BeforeEach
-    void setUp() {
-        dummyClan = Clan.builder().id(clanId).name("Test Clan").build();
-    }
-
     @Test
     void applyToClan_success() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(false);
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.PENDING)).thenReturn(false);
-        when(clanRepository.getReferenceById(clanId)).thenReturn(dummyClan);
-        
-        ClanMembership mockSaved = ClanMembership.builder().id("mem-1").clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).role(ClanRole.MEMBER).build();
-        
-        when(membershipRepository.save(any(ClanMembership.class))).thenAnswer(i -> {
-            ClanMembership m = i.getArgument(0);
-            m.setId("mem-1");
-            return m;
-        });
+        Clan clan = Clan.builder().id("clan1").build();
+        when(validator.findClanOrThrow("clan1")).thenReturn(clan);
+        doNothing().when(validator).validateUserNotInAnyClan("user1");
+        when(clanRepository.getReferenceById("clan1")).thenReturn(clan);
+        when(membershipRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        MembershipResponse res = membershipService.applyToClan(clanId, userId);
+        MembershipResponse res = membershipService.applyToClan("clan1", "user1");
 
         assertNotNull(res);
-        verify(membershipRepository, times(1)).save(any(ClanMembership.class));
+        assertEquals("user1", res.getUserId());
+        assertEquals("clan1", res.getClanId());
+        verify(membershipRepository).save(any());
     }
 
     @Test
-    void decideMembership_approve() {
-        MembershipDecisionRequest req = new MembershipDecisionRequest();
-        req.setDecision(MembershipStatus.APPROVED);
+    void applyToClan_clanNotFound_throws() {
+        doThrow(new RuntimeException("Clan tidak ditemukan."))
+                .when(validator).findClanOrThrow("clan1");
 
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        ClanMembership applicantMembership = ClanMembership.builder().clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).build();
+        assertThrows(RuntimeException.class, () -> membershipService.applyToClan("clan1", "user1"));
+        verify(membershipRepository, never()).save(any());
+    }
 
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(leaderMembership));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(applicantMembership));
-        when(membershipRepository.save(any(ClanMembership.class))).thenReturn(applicantMembership);
+    @Test
+    void applyToClan_userAlreadyInClan_throws() {
+        when(validator.findClanOrThrow("clan1")).thenReturn(Clan.builder().id("clan1").build());
+        doThrow(new RuntimeException("Sudah dalam clan."))
+                .when(validator).validateUserNotInAnyClan("user1");
 
-        MembershipResponse res = membershipService.decideMembership(clanId, userId, req, leaderId);
+        assertThrows(RuntimeException.class, () -> membershipService.applyToClan("clan1", "user1"));
+        verify(membershipRepository, never()).save(any());
+    }
+
+
+    @Test
+    void decideMembership_approve_success() {
+        ClanMembership membership = pendingMembership("mem1", "user1"); // state sudah PendingState dari builder
+
+        doNothing().when(validator).validateLeader("clan1", "leader1");
+        when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
+                .thenReturn(Optional.of(membership));
+        when(membershipRepository.save(any())).thenReturn(membership);
+
+        MembershipResponse res = membershipService.decideMembership(
+                decisionReq("clan1", "user1", "leader1", MembershipStatus.APPROVED));
 
         assertEquals(MembershipStatus.APPROVED, res.getStatus());
-        verify(membershipRepository, times(1)).save(applicantMembership);
+        verify(membershipRepository).save(membership);
     }
+
+    @Test
+    void decideMembership_reject_success() {
+        ClanMembership membership = pendingMembership("mem1", "user1");
+
+        doNothing().when(validator).validateLeader("clan1", "leader1");
+        when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
+                .thenReturn(Optional.of(membership));
+        when(membershipRepository.save(any())).thenReturn(membership);
+
+        MembershipResponse res = membershipService.decideMembership(
+                decisionReq("clan1", "user1", "leader1", MembershipStatus.REJECTED));
+
+        assertEquals(MembershipStatus.REJECTED, res.getStatus());
+        verify(membershipRepository).save(membership);
+    }
+
+    @Test
+    void decideMembership_notLeader_throws() {
+        doThrow(new RuntimeException("Bukan ketua clan."))
+                .when(validator).validateLeader("clan1", "notLeader");
+
+        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(
+                decisionReq("clan1", "user1", "notLeader", MembershipStatus.APPROVED)));
+        verify(membershipRepository, never()).save(any());
+    }
+
+    @Test
+    void decideMembership_applicationNotFound_throws() {
+        doNothing().when(validator).validateLeader("clan1", "leader1");
+        when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(
+                decisionReq("clan1", "user1", "leader1", MembershipStatus.APPROVED)));
+    }
+
+    // ─── getPendingApplications ───────────────────────────────────────────────
 
     @Test
     void getPendingApplications_success() {
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        ClanMembership applicantMembership = ClanMembership.builder().clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).build();
+        doNothing().when(validator).validateLeader("clan1", "leader1");
+        when(membershipRepository.findByClanIdAndStatus("clan1", MembershipStatus.PENDING))
+                .thenReturn(List.of(pendingMembership("mem1", "user1")));
 
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(leaderMembership));
-        when(membershipRepository.findByClanIdAndStatus(clanId, MembershipStatus.PENDING)).thenReturn(List.of(applicantMembership));
+        List<MembershipResponse> res = membershipService.getPendingApplications("clan1", "leader1");
 
-        List<MembershipResponse> res = membershipService.getPendingApplications(clanId, leaderId);
-
-        assertFalse(res.isEmpty());
         assertEquals(1, res.size());
+        assertEquals("user1", res.get(0).getUserId());
+        assertEquals(MembershipStatus.PENDING, res.get(0).getStatus());
     }
+
+    @Test
+    void getPendingApplications_notLeader_throws() {
+        doThrow(new RuntimeException("Bukan ketua clan."))
+                .when(validator).validateLeader("clan1", "notLeader");
+
+        assertThrows(RuntimeException.class,
+                () -> membershipService.getPendingApplications("clan1", "notLeader"));
+    }
+
+    // ─── leaveClan ────────────────────────────────────────────────────────────
 
     @Test
     void leaveClan_success() {
-        ClanMembership membership = ClanMembership.builder().clan(dummyClan).userId(userId).role(ClanRole.MEMBER).status(MembershipStatus.APPROVED).build();
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(membership));
+        ClanMembership mem = ClanMembership.builder()
+                .id("mem1").userId("user1").role(ClanRole.MEMBER).build();
+        when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
+                .thenReturn(Optional.of(mem));
 
-        membershipService.leaveClan(clanId, userId);
+        membershipService.leaveClan("clan1", "user1");
 
-        verify(membershipRepository, times(1)).delete(membership);
-    }
-    @Test
-    void applyToClan_clanNotFound() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> membershipService.applyToClan(clanId, userId));
+        verify(membershipRepository).delete(mem);
     }
 
     @Test
-    void applyToClan_alreadyMember() {
-        when(clanRepository.findById(clanId)).thenReturn(Optional.of(dummyClan));
-        when(membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED)).thenReturn(true);
-        assertThrows(RuntimeException.class, () -> membershipService.applyToClan(clanId, userId));
+    void leaveClan_leader_throws() {
+        ClanMembership mem = ClanMembership.builder()
+                .id("mem1").userId("leader1").role(ClanRole.LEADER).build();
+        when(membershipRepository.findByClanIdAndUserId("clan1", "leader1"))
+                .thenReturn(Optional.of(mem));
+
+        assertThrows(RuntimeException.class, () -> membershipService.leaveClan("clan1", "leader1"));
+        verify(membershipRepository, never()).delete(any());
     }
 
     @Test
-    void decideMembership_reject() {
+    void leaveClan_notMember_throws() {
+        when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(RuntimeException.class, () -> membershipService.leaveClan("clan1", "user1"));
+    }
+
+    // ─── helpers ──────────────────────────────────────────────────────────────
+
+    private ClanMembership pendingMembership(String id, String userId) {
+        return ClanMembership.builder()
+                .id(id)
+                .clan(Clan.builder().id("clan1").build())
+                .userId(userId)
+                .role(ClanRole.MEMBER)
+                .status(MembershipStatus.PENDING)
+                .build();
+    }
+
+    private MembershipDecisionRequest decisionReq(
+            String clanId, String applicantId, String leaderId, MembershipStatus decision) {
         MembershipDecisionRequest req = new MembershipDecisionRequest();
-        req.setDecision(MembershipStatus.REJECTED);
-
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        ClanMembership applicantMembership = ClanMembership.builder().clan(dummyClan).userId(userId).status(MembershipStatus.PENDING).build();
-
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(leaderMembership));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(applicantMembership));
-        when(membershipRepository.save(any(ClanMembership.class))).thenReturn(applicantMembership);
-
-        MembershipResponse res = membershipService.decideMembership(clanId, userId, req, leaderId);
-        assertEquals(MembershipStatus.REJECTED, res.getStatus());
-    }
-
-    @Test
-    void decideMembership_leaderValidationFails() {
-        ClanMembership notLeader = ClanMembership.builder().role(ClanRole.MEMBER).build();
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(notLeader));
-        
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(clanId, userId, new MembershipDecisionRequest(), leaderId));
-    }
-
-    @Test
-    void decideMembership_applicantNotFound() {
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(leaderMembership));
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.empty());
-        
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(clanId, userId, new MembershipDecisionRequest(), leaderId));
-    }
-
-    @Test
-    void getPendingApplications_leaderValidationFails() {
-        ClanMembership notLeader = ClanMembership.builder().role(ClanRole.MEMBER).build();
-        when(membershipRepository.findByClanIdAndUserId(clanId, leaderId)).thenReturn(Optional.of(notLeader));
-        
-        assertThrows(RuntimeException.class, () -> membershipService.getPendingApplications(clanId, leaderId));
-    }
-
-    @Test
-    void leaveClan_notMember() {
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.empty());
-        assertThrows(RuntimeException.class, () -> membershipService.leaveClan(clanId, userId));
-    }
-
-    @Test
-    void leaveClan_leaderCannotLeave() {
-        ClanMembership leaderMembership = ClanMembership.builder().role(ClanRole.LEADER).build();
-        when(membershipRepository.findByClanIdAndUserId(clanId, userId)).thenReturn(Optional.of(leaderMembership));
-        
-        assertThrows(RuntimeException.class, () -> membershipService.leaveClan(clanId, userId));
+        req.setClanId(clanId);
+        req.setApplicantId(applicantId);
+        req.setLeaderId(leaderId);
+        req.setDecision(decision);
+        return req;
     }
 }

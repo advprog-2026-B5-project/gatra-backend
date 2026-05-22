@@ -4,35 +4,28 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-class ClanReachedDiamondEventTest {
+class ClanReachedHighestTierEventTest {
 
     @Test
-    void testClanReachedDiamondEventConstructorAndGetters() {
+    void constructorAndGetters_success() {
         Object source = new Object();
         String expectedClanId = "clan-uuid-123";
-        List<String> expectedMemberIds = List.of(
-                "user-uuid-1",
-                "user-uuid-2",
-                "user-uuid-3"
-        );
+        List<String> expectedMemberIds = List.of("user-uuid-1", "user-uuid-2", "user-uuid-3");
 
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(source, expectedClanId, expectedMemberIds);
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(source, expectedClanId, expectedMemberIds);
 
-        assertEquals(source, event.getSource(), "Source event harus sama dengan yang diinputkan");
-        assertEquals(expectedClanId, event.getClanId(), "Clan ID harus sesuai dengan yang diinputkan");
-        assertEquals(expectedMemberIds, event.getMemberIds(), "List member IDs harus sesuai dengan yang diinputkan");
-        assertEquals(3, event.getMemberIds().size(), "Jumlah member IDs harus tepat");
+        assertEquals(source, event.getSource());
+        assertEquals(expectedClanId, event.getClanId());
+        assertEquals(expectedMemberIds, event.getMemberIds());
+        assertEquals(3, event.getMemberIds().size());
     }
 
     @Test
-    void testClanReachedDiamondEventWithEmptyList() {
+    void constructorWithEmptyMemberIds_memberListEmpty() {
         Object source = new Object();
-        String clanId = "empty-clan";
-        List<String> emptyMembers = List.of();
+        ClanReachedHighestTierEvent event = new ClanReachedHighestTierEvent(source, "empty-clan", List.of());
 
-        ClanReachedDiamondEvent event = new ClanReachedDiamondEvent(source, clanId, emptyMembers);
-
-        assertNotNull(event.getMemberIds(), "List member tidak boleh null");
-        assertTrue(event.getMemberIds().isEmpty(), "List member harus kosong");
+        assertNotNull(event.getMemberIds());
+        assertTrue(event.getMemberIds().isEmpty());
     }
 }
