@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import io.micrometer.core.instrument.Counter;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ class LeaderboardServiceImplTest {
 
     @Mock
     private LeaderboardRankingBuilder rankingBuilder;
+
+    @Mock private ClanMetricsService metricsService;
 
     @InjectMocks
     private LeaderboardServiceImpl leaderboardService;
@@ -44,6 +47,10 @@ class LeaderboardServiceImplTest {
                 .clanId("clan1").clanName("Clan Satu").tier("BRONZE").score(150.0).rank(2).build();
         entry2 = LeaderboardEntryResponse.builder()
                 .clanId("clan2").clanName("Clan Dua").tier("BRONZE").score(200.0).rank(1).build();
+
+        Counter mockCounter = mock(Counter.class);
+        when(metricsService.getLeaderboardViewedCounter()).thenReturn(mockCounter);
+        when(metricsService.getLeaderboardByTierViewedCounter()).thenReturn(mockCounter);
     }
 
     @Test

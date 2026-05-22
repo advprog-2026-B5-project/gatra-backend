@@ -3,10 +3,12 @@ package id.ac.ui.cs.advprog.gatra.clan.service;
 import id.ac.ui.cs.advprog.gatra.clan.dto.*;
 import id.ac.ui.cs.advprog.gatra.clan.model.*;
 import id.ac.ui.cs.advprog.gatra.clan.repository.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import io.micrometer.core.instrument.Counter;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -22,8 +24,20 @@ class ClanMembershipServiceImplTest {
     @Mock private ClanRepository clanRepository;
     @Mock private ClanMembershipRepository membershipRepository;
     @Mock private ClanValidator validator;
+    @Mock private ClanMetricsService metricsService;
 
     @InjectMocks private ClanMembershipServiceImpl membershipService;
+
+    private Counter mockCounter;
+
+    @BeforeEach
+    void setUp() {
+        mockCounter = mock(Counter.class);
+        when(metricsService.getMembershipAppliedCounter()).thenReturn(mockCounter);
+        when(metricsService.getMembershipApprovedCounter()).thenReturn(mockCounter);
+        when(metricsService.getMembershipRejectedCounter()).thenReturn(mockCounter);
+        when(metricsService.getMembershipLeftCounter()).thenReturn(mockCounter);
+    }
 
     @Test
     void applyToClan_success() {
