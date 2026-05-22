@@ -40,7 +40,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
 
         ClanMembership membership = membershipRepository
                 .findByClanIdAndUserId(request.getClanId(), request.getApplicantId())
-                .orElseThrow(() -> new RuntimeException("Aplikasi tidak ditemukan."));
+                .orElseThrow(() -> new IllegalArgumentException("Aplikasi tidak ditemukan."));
 
         if (request.getDecision() == MembershipStatus.APPROVED) {
             membership.approve();
@@ -63,10 +63,10 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
     @Transactional
     public void leaveClan(String clanId, String userId) {
         ClanMembership membership = membershipRepository.findByClanIdAndUserId(clanId, userId)
-                .orElseThrow(() -> new RuntimeException("Kamu bukan anggota clan ini."));
+                .orElseThrow(() -> new IllegalArgumentException("Kamu bukan anggota clan ini."));
 
         if (membership.getRole().equals(ClanRole.LEADER)) {
-            throw new RuntimeException("Ketua tidak bisa keluar clan.");
+            throw new IllegalStateException("Ketua tidak bisa keluar clan.");
         }
 
         membershipRepository.delete(membership);

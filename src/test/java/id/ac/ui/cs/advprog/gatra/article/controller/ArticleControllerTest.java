@@ -3,12 +3,7 @@ package id.ac.ui.cs.advprog.gatra.article.controller;
 import id.ac.ui.cs.advprog.gatra.article.dto.ArticleRequest;
 import id.ac.ui.cs.advprog.gatra.article.dto.ArticleResponse;
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
-import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
-import id.ac.ui.cs.advprog.gatra.auth.model.User;
-import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import id.ac.ui.cs.advprog.gatra.article.service.ArticleService;
-import id.ac.ui.cs.advprog.gatra.achievement.service.MilestoneService;
-import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -134,7 +128,7 @@ class ArticleControllerTest {
         when(userDetails.getUsername()).thenReturn(DUMMY_USERNAME);
 
         doNothing().when(articleService)
-                .deleteArticle(eq(articleId), eq(DUMMY_USERNAME));
+                .deleteArticle(articleId, DUMMY_USERNAME);
 
         ResponseEntity<Void> result =
                 articleController.deleteArticle(articleId, userDetails);
@@ -142,7 +136,7 @@ class ArticleControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
 
         verify(articleService, times(1))
-                .deleteArticle(eq(articleId), eq(DUMMY_USERNAME));
+                .deleteArticle(articleId, DUMMY_USERNAME);
     }
 
     @Test

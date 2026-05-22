@@ -98,8 +98,8 @@ class ClanMembershipServiceImplTest {
         doThrow(new RuntimeException("Bukan ketua clan."))
                 .when(validator).validateLeader("clan1", "notLeader");
 
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(
-                decisionReq("clan1", "user1", "notLeader", MembershipStatus.APPROVED)));
+        MembershipDecisionRequest req = decisionReq("clan1", "user1", "notLeader", MembershipStatus.APPROVED);
+        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(req));
         verify(membershipRepository, never()).save(any());
     }
 
@@ -109,8 +109,8 @@ class ClanMembershipServiceImplTest {
         when(membershipRepository.findByClanIdAndUserId("clan1", "user1"))
                 .thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(
-                decisionReq("clan1", "user1", "leader1", MembershipStatus.APPROVED)));
+        MembershipDecisionRequest req = decisionReq("clan1", "user1", "leader1", MembershipStatus.APPROVED);
+        assertThrows(RuntimeException.class, () -> membershipService.decideMembership(req));
     }
 
     // ─── getPendingApplications ───────────────────────────────────────────────

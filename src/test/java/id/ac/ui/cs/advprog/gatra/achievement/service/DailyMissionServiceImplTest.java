@@ -119,7 +119,7 @@ class DailyMissionServiceImplTest {
         DailyMissionResponse response = missionService.updateMission(missionId, request);
 
         assertNotNull(response);
-        verify(missionMapper).updateEntityFromRequest(eq(request), eq(mission));
+        verify(missionMapper).updateEntityFromRequest(request, mission);
         verify(missionRepository).save(mission);
     }
 

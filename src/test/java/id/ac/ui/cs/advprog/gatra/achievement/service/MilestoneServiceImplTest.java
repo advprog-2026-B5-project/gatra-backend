@@ -123,7 +123,7 @@ class MilestoneServiceImplTest {
         when(achievementRepository.findByCategoryAndMilestoneThresholdLessThanEqual(
                 ActionType.READ_ARTICLE, 5)).thenReturn(List.of(achievement5));
 
-        when(userAchievementService.unlockIfNotYet(eq(userId), eq(achievement5)))
+        when(userAchievementService.unlockIfNotYet(userId, achievement5))
                 .thenReturn(true);
 
         when(achievementMapper.toResponse(achievement5))

@@ -109,10 +109,10 @@ class UserServiceTest {
 
     @Test
     void testGetUserById_Success() {
-        UUID dummyId = dummyUser.getId();
-        Mockito.when(userRepository.findById(dummyId)).thenReturn(Optional.of(dummyUser));
+        UUID userId = dummyUser.getId();
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(dummyUser));
 
-        UserResponse response = userService.getUserById(dummyId);
+        UserResponse response = userService.getUserById(userId);
 
         assertNotNull(response);
         assertEquals(dummyUser.getUsername(), response.getUsername());
@@ -121,11 +121,11 @@ class UserServiceTest {
 
     @Test
     void testGetUserById_Failed_NotFound() {
-        UUID dummyId = UUID.randomUUID();
-        Mockito.when(userRepository.findById(dummyId)).thenReturn(Optional.empty());
+        UUID userId = UUID.randomUUID();
+        Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            userService.getUserById(dummyId);
+            userService.getUserById(userId);
         });
 
         assertEquals("User tidak ditemukan", exception.getMessage());

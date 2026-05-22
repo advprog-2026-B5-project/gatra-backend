@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
-    private static final String fallback_category_name = "Dll";
+    private static final String FALLBACK_CATEGORY_NAME = "Dll";
     private final ArticleRepository articleRepository;
 
     @Override
@@ -30,7 +29,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findAll().stream()
                 .filter(c -> c.getDeletedAt() == null)
                 .map(categoryMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -78,9 +77,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private Category getOrCreateFallbackCategory() {
-        return categoryRepository.findByName(fallback_category_name)
+        return categoryRepository.findByName(FALLBACK_CATEGORY_NAME)
                 .orElseGet(() -> categoryRepository.save(
-                        Category.builder().name(fallback_category_name).build()));
+                        Category.builder().name(FALLBACK_CATEGORY_NAME).build()));
     }
 
     private void softDeleteCategory(Category category) {

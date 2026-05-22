@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.gatra.clan.controller;
 
-import id.ac.ui.cs.advprog.gatra.clan.dto.LeaderboardEntryResponse;
 import id.ac.ui.cs.advprog.gatra.clan.dto.TierLeaderboardResponse;
 import id.ac.ui.cs.advprog.gatra.clan.service.LeaderboardService;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;

@@ -45,7 +45,7 @@ class UserAchievementServiceImplTest {
 
     private UserAchievementServiceImpl userAchievementService;
 
-    private final String USERNAME = "user123";
+    private final String username = "user123";
     private UUID achievementId;
     private UUID userId;
     private User mockUser;
@@ -56,7 +56,7 @@ class UserAchievementServiceImplTest {
         achievementId = UUID.randomUUID();
         userId = UUID.randomUUID();
 
-        mockUser = User.builder().id(userId).username(USERNAME).build();
+        mockUser = User.builder().id(userId).username(username).build();
 
         userAchievement = new UserAchievement();
         userAchievement.setUserId(userId);
@@ -135,41 +135,41 @@ class UserAchievementServiceImplTest {
 
     @Test
     void toggleDisplay_whenDisplayedTrue_shouldUseShowStrategy() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.of(userAchievement));
 
-        userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true);
+        userAchievementService.toggleDisplayAchievement(username, achievementId, true);
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
         verify(showStrategy, times(1)).execute(userAchievement);
         verify(hideStrategy, never()).execute(any());
     }
 
     @Test
     void toggleDisplay_whenDisplayedFalse_shouldUseHideStrategy() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.of(userAchievement));
 
-        userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, false);
+        userAchievementService.toggleDisplayAchievement(username, achievementId, false);
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
         verify(hideStrategy, times(1)).execute(userAchievement);
         verify(showStrategy, never()).execute(any());
     }
 
     @Test
     void toggleDisplay_whenNotFound_shouldThrowException() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
-                userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true)
+                userAchievementService.toggleDisplayAchievement(username, achievementId, true)
         );
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
     }
 
     @Test

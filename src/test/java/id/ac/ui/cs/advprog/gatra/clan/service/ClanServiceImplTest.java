@@ -63,7 +63,8 @@ class ClanServiceImplTest {
         doThrow(new RuntimeException("Sudah dalam clan."))
                 .when(validator).validateUserNotInAnyClan(userId);
 
-        assertThrows(RuntimeException.class, () -> clanService.createClan(new CreateClanRequest(), userId));
+        CreateClanRequest req = new CreateClanRequest();
+        assertThrows(RuntimeException.class, () -> clanService.createClan(req, userId));
         verify(clanRepository, never()).save(any());
     }
 

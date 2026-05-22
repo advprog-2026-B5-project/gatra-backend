@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,19 +34,21 @@ public class ArticleServiceImpl implements ArticleService {
     private final MissionProgressService missionProgressService;
     private final MonitoringArticle monitoringArticle;
 
+    private static final String ARTICLE_ENTITY = "Article";
+
     @Override
     public List<ArticleResponse> getAllArticles() {
         return articleRepository.findAll().stream()
                 .filter(article -> !article.isDeleted())
                 .map(articleMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     public ArticleResponse getArticleById(UUID id) {
-        Article article = articleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Article", id));
+        Article article = articleRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(ARTICLE_ENTITY, id));
         if (article.isDeleted()) {
-            throw new ResourceNotFoundException("Article", id);
+            throw new ResourceNotFoundException(ARTICLE_ENTITY, id);
         }
         monitoringArticle.incrementArticleViewed();
         return articleMapper.toResponse(article);
@@ -88,7 +89,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     public void deleteArticle(UUID id, String adminUsername) {
         Article article = articleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Article", id));
+                .orElseThrow(() -> new ResourceNotFoundException(ARTICLE_ENTITY, id));
         if (article.isDeleted()) {
             throw new IllegalStateException("Artikel sudah dihapus pada " + article.getDeletedAt());
         }
@@ -102,12 +103,12 @@ public class ArticleServiceImpl implements ArticleService {
         return articleRepository.findAll().stream()
                 .filter(Article::isDeleted)
                 .map(articleMapper::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Article findArticleOrThrow(UUID id) {
         return articleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Article", id));
+                .orElseThrow(() -> new ResourceNotFoundException(ARTICLE_ENTITY, id));
     }
 
     private Category findCategoryOrThrow(UUID id) {

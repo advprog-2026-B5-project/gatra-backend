@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class UserAchievementServiceImpl implements UserAchievementService {
@@ -54,7 +53,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
         return userAchievementRepository.findByUserIdAndIsDisplayedTrue(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
                 .limit(AchievementConstants.MAX_DISPLAYED_ACHIEVEMENTS)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
