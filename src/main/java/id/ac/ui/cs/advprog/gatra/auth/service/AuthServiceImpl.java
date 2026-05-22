@@ -11,6 +11,8 @@ import id.ac.ui.cs.advprog.gatra.auth.dto.LoginRequest;
 import id.ac.ui.cs.advprog.gatra.auth.dto.AuthResponse;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 
+import io.micrometer.core.instrument.Gauge;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +30,13 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder; // Untuk enkripsi password
     private final JwtUtil jwtUtil;
     private final MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void initMetrics() {
+        Gauge.builder("gatra.auth.registered.users", this.userRepository, UserRepository::count)
+                .description("Total pengguna terdaftar dari pangkalan data secara real-time")
+                .register(this.meterRegistry);
+    }
 
     @Transactional
     public AuthResponse registerStudent(RegisterRequest request) {
@@ -65,9 +74,6 @@ public class AuthServiceImpl implements AuthService {
         studentProfileRepository.save(newProfile);
 
         String jwtToken = jwtUtil.generateToken(savedUser);
-
-        meterRegistry.counter("gatra.auth.registered.users",
-                "role", "student").increment();
 
         // Response ke Frontend
         return AuthResponse.builder()
