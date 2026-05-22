@@ -9,7 +9,7 @@ import id.ac.ui.cs.advprog.gatra.article.model.Category;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
-import id.ac.ui.cs.advprog.gatra.article.Monitoring.MonitoringArticle;
+import id.ac.ui.cs.advprog.gatra.article.monitoring.MonitoringArticle;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

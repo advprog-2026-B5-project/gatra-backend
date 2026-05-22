@@ -72,9 +72,9 @@ class UserAchievementServiceImplTest {
 
     @Test
     void getMyAchievements_ShouldReturnListOfResponse() {
-        String username = "testUser";
+        String testUsername = "testUser";
         UUID currentUserId = UUID.randomUUID();
-        User currentUser = User.builder().id(currentUserId).username(username).build();
+        User currentUser = User.builder().id(currentUserId).username(testUsername).build();
 
         Achievement ach = Achievement.builder().name("Master Kuis").build();
 
@@ -87,24 +87,24 @@ class UserAchievementServiceImplTest {
 
         AchievementResponse response = AchievementResponse.builder().name("Master Kuis").build();
 
-        when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
+        when(userService.getUserEntityByUsername(testUsername)).thenReturn(currentUser);
         when(userAchievementRepository.findByUserId(currentUserId)).thenReturn(List.of(relation));
         when(achievementMapper.toResponseFromUserAchievement(relation)).thenReturn(response);
 
-        List<AchievementResponse> result = userAchievementService.getMyAchievements(username);
+        List<AchievementResponse> result = userAchievementService.getMyAchievements(testUsername);
 
         assertFalse(result.isEmpty());
         assertEquals("Master Kuis", result.get(0).getName());
 
-        verify(userService).getUserEntityByUsername(username);
+        verify(userService).getUserEntityByUsername(testUsername);
         verify(userAchievementRepository).findByUserId(currentUserId);
     }
 
     @Test
     void getDisplayedAchievements_shouldReturnLimitedList() {
-        String username = "rehema";
+        String testUsername = "rehema";
         UUID currentUserId = UUID.randomUUID();
-        User currentUser = User.builder().id(currentUserId).username(username).build();
+        User currentUser = User.builder().id(currentUserId).username(testUsername).build();
 
         Achievement ach = Achievement.builder().name("Test").build();
         UserAchievement rel1 = UserAchievement.builder().achievement(ach).build();
@@ -112,7 +112,7 @@ class UserAchievementServiceImplTest {
         UserAchievement rel3 = UserAchievement.builder().achievement(ach).build();
         UserAchievement rel4 = UserAchievement.builder().achievement(ach).build();
 
-        when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
+        when(userService.getUserEntityByUsername(testUsername)).thenReturn(currentUser);
         when(userAchievementRepository.findByUserIdAndIsDisplayedTrue(currentUserId))
                 .thenReturn(List.of(rel1, rel2, rel3, rel4));
 
@@ -124,12 +124,12 @@ class UserAchievementServiceImplTest {
         when(achievementMapper.toResponseFromUserAchievement(any()))
                 .thenReturn(displayedResponse);
 
-        List<AchievementResponse> result = userAchievementService.getDisplayedAchievements(username);
+        List<AchievementResponse> result = userAchievementService.getDisplayedAchievements(testUsername);
 
         assertEquals(3, result.size());
         assertTrue(result.get(0).isDisplayed());
 
-        verify(userService).getUserEntityByUsername(username);
+        verify(userService).getUserEntityByUsername(testUsername);
         verify(userAchievementRepository, times(1)).findByUserIdAndIsDisplayedTrue(currentUserId);
     }
 

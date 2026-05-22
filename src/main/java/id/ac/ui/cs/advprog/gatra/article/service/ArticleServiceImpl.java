@@ -14,7 +14,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
-import id.ac.ui.cs.advprog.gatra.article.Monitoring.MonitoringArticle;
+import id.ac.ui.cs.advprog.gatra.article.monitoring.MonitoringArticle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
