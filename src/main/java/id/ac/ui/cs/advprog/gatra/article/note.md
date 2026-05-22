@@ -20,3 +20,18 @@ Setelah endpoint tersebut diakses, Prometheus digunakan untuk mengecek metric cu
 
 Metric tersebut membuktikan bahwa aktivitas pada modul bacaan dan kuis berhasil tercatat. Selain itu, Grafana digunakan untuk memvisualisasikan metric dalam bentuk dashboard yang lebih mudah dibaca.
 ![img.png](img.png)
+
+## Profiling
+
+### Before
+![img_3.png](img_3.png)
+![img_4.png](img_4.png)
+
+### After
+![img_5.png](img_5.png)
+![img_6.png](img_6.png)
+
+Proses profiling dilakukan menggunakan IntelliJ Profiler dengan metode CPU Time sampling pada dua sesi, yaitu before refactor dan after refactor dengan hit endpoint yang sama.
+getAllArticles turun dari 377ms 260ms (-31%) karena refactor menghilangkan overhead serialisasi entity JPA secara langsung. Setelah refactor, data dikonversi via ArticleMapper ke DTO sebelum dikembalikan, sehingga Hibernate tidak perlu lazy-load relasi yang tidak dibutuhkan.
+getQuestionsByArticle turun dari 52ms ke 39ms (-25%) karena penambahan QuestionMapper yang mengkonversi ke QuestionResponse DTO, Jackson tidak perlu serialize seluruh entity Question beserta relasinya ke Article.
+getArticleById turun dari 65ms ke 52ms (-20%) karena penambahan guard isDeleted() yang fail-fast sebelum mapping, menghindari pemrosesan yang tidak perlu.
