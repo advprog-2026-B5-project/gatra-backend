@@ -6,7 +6,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
-import id.ac.ui.cs.advprog.gatra.quiz.Monitoring.MonitoringQuestion;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

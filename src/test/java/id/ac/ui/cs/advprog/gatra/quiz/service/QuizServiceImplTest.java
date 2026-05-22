@@ -7,7 +7,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.model.TrueFalseQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
-import id.ac.ui.cs.advprog.gatra.quiz.Monitoring.MonitoringQuestion;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

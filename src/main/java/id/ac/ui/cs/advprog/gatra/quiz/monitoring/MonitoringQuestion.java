@@ -1,4 +1,4 @@
-package id.ac.ui.cs.advprog.gatra.quiz.Monitoring;
+package id.ac.ui.cs.advprog.gatra.quiz.monitoring;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;

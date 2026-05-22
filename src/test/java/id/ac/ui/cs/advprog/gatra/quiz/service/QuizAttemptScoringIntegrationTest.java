@@ -16,7 +16,7 @@ import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
 import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MilestoneService;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressService;
-import id.ac.ui.cs.advprog.gatra.quiz.Monitoring.MonitoringQuestion;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

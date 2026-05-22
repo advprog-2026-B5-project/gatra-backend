@@ -19,7 +19,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuizAttemptRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
 import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
-import id.ac.ui.cs.advprog.gatra.quiz.Monitoring.MonitoringQuestion;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
