@@ -35,3 +35,11 @@ Proses profiling dilakukan menggunakan IntelliJ Profiler dengan metode CPU Time 
 getAllArticles turun dari 377ms 260ms (-31%) karena refactor menghilangkan overhead serialisasi entity JPA secara langsung. Setelah refactor, data dikonversi via ArticleMapper ke DTO sebelum dikembalikan, sehingga Hibernate tidak perlu lazy-load relasi yang tidak dibutuhkan.
 getQuestionsByArticle turun dari 52ms ke 39ms (-25%) karena penambahan QuestionMapper yang mengkonversi ke QuestionResponse DTO, Jackson tidak perlu serialize seluruh entity Question beserta relasinya ke Article.
 getArticleById turun dari 65ms ke 52ms (-20%) karena penambahan guard isDeleted() yang fail-fast sebelum mapping, menghindari pemrosesan yang tidak perlu.
+
+## Performance testing Lighthouse
+![img_7.png](img_7.png)
+![img_8.png](img_8.png)
+Performance testing dilakukan menggunakan Lighthouse pada Chrome DevTools untuk mengevaluasi performa frontend pada halaman daftar bacaan. Pengujian ini dilakukan untuk melihat pengalaman pengguna dari sisi browser, terutama terkait kecepatan halaman dalam menampilkan konten.
+Berdasarkan hasil Lighthouse, halaman daftar bacaan memperoleh skor Performance sebesar 70. Nilai First Contentful Paint (FCP) adalah 2.0 detik dan Largest Contentful Paint (LCP) adalah 3.5 detik. Hal ini menunjukkan bahwa konten awal dan konten utama halaman masih membutuhkan waktu cukup lama untuk tampil. Namun, nilai Total Blocking Time (TBT) sebesar 0 ms dan Cumulative Layout Shift (CLS) sebesar 0 menunjukkan bahwa halaman tidak mengalami blocking JavaScript dan tidak terjadi pergeseran layout saat proses loading.
+Dari hasil tersebut, bottleneck utama terdapat pada proses loading awal halaman, terutama ketika daftar bacaan dimuat dan dirender. Oleh karena itu, improvement yang dapat dilakukan adalah menambahkan loading skeleton, mengoptimalkan request data bacaan, menerapkan pagination untuk daftar artikel, serta memastikan asset frontend tidak terlalu besar.
+Secara keseluruhan, hasil performance testing menunjukkan bahwa halaman sudah cukup stabil dari sisi interaksi dan layout, tetapi masih dapat ditingkatkan pada aspek kecepatan pemuatan konten awal.
