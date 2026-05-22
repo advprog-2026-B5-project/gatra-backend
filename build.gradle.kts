@@ -28,8 +28,6 @@ repositories {
 
 val jjwtVersion = "0.11.5"
 
-val jjwtVersion = "0.11.5"
-
 dependencies {
     // implementation
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -62,41 +60,8 @@ dependencies {
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.h2database:h2")
 
-<<<<<<< HEAD
     // testRuntimeOnly
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-=======
-    // Observability & Monitoring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus")
-
->>>>>>> ddf250863d6411976e39f63f066706217198dbf5
-    // implementation
-    implementation("io.jsonwebtoken:jjwt-api:$jjwtVersion")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus")
-
-    // compileOnly
-    compileOnly("org.projectlombok:lombok")
-    // runtimeOnly
-    runtimeOnly("org.postgresql:postgresql")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jjwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jjwtVersion")
-    // developmentOnly
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-
-    // annotationProcessor
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    annotationProcessor("org.projectlombok:lombok")
-
-    // testImplementation
-
-    // testRuntimeOnly
-
-    // Observability & Monitoring
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.micrometer:micrometer-registry-prometheus")
-
 }
 
 tasks.withType<Test> {
