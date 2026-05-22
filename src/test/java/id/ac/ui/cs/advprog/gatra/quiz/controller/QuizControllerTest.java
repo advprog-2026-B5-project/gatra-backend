@@ -3,6 +3,7 @@ package id.ac.ui.cs.advprog.gatra.quiz.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.gatra.auth.security.JwtUtil;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.*;
+import id.ac.ui.cs.advprog.gatra.quiz.mapper.QuestionMapper;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.model.TrueFalseQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.service.QuizAttemptService;
@@ -51,9 +52,14 @@ class QuizControllerTest {
     @MockitoBean
     private UserDetailsService userDetailsService;
 
+    @MockitoBean
+    private QuestionMapper questionMapper;
+
     private TrueFalseQuestion dummyQuestion;
     private UUID dummyId;
     private UUID articleId;
+    private QuestionResponse dummyResponse;
+    private CreateQuestionRequest request;
 
     @BeforeEach
     void setUp() {
@@ -64,19 +70,28 @@ class QuizControllerTest {
         dummyQuestion.setId(dummyId);
         dummyQuestion.setText("Test Question");
         dummyQuestion.setCorrectAnswer("True");
+
+        dummyResponse = QuestionResponse.builder()
+                .id(dummyId)
+                .type("TRUE_FALSE")
+                .text("Test Question")
+                .articleId(articleId)
+                .correctAnswer("True")
+                .build();
+
+        when(questionMapper.toResponse(any(Question.class))).thenReturn(dummyResponse);
+        request = new CreateQuestionRequest("Test Question", null, "True", articleId);
     }
 
     @Test
     @WithMockUser
-    void createQuestion_shouldReturnOkAndQuestion() throws Exception {
-        CreateQuestionRequest request = new CreateQuestionRequest("Test Question", null, "True", articleId);
-        
+    void createQuestion_shouldReturnCreatedAndQuestion() throws Exception {
         when(quizService.createQuestion(any(CreateQuestionRequest.class))).thenReturn(dummyQuestion);
 
         mockMvc.perform(post("/api/quiz")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.text").value("Test Question"));
     }
 
@@ -129,11 +144,21 @@ class QuizControllerTest {
         String jsonRequest = "{\"text\":\"Updated Question\",\"correctAnswer\":\"False\"}";
 
         dummyQuestion.setText("Updated Question");
+
+        QuestionResponse updatedResponse = QuestionResponse.builder()
+                .id(dummyId)
+                .type("TRUE_FALSE")
+                .text("Updated Question")
+                .articleId(articleId)
+                .correctAnswer("False")
+                .build();
+
         when(quizService.updateQuestion(eq(dummyId), any(UpdateQuestionRequest.class))).thenReturn(dummyQuestion);
+        when(questionMapper.toResponse(dummyQuestion)).thenReturn(updatedResponse);
 
         mockMvc.perform(put("/api/quiz/{id}", dummyId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonRequest))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.text").value("Updated Question"));
     }

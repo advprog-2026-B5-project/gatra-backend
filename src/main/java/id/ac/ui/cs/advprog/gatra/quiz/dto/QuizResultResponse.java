@@ -2,8 +2,17 @@ package id.ac.ui.cs.advprog.gatra.quiz.dto;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MilestoneResponse;
 import id.ac.ui.cs.advprog.gatra.quiz.model.QuizAnswer;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class QuizResultResponse {
     private Float score;
     private Float passingScore;
@@ -20,14 +29,4 @@ public class QuizResultResponse {
         this.answers = answers;
     }
 
-    public Float getScore() { return score; }
-    public Float getPassingScore() { return passingScore; }
-    public Boolean getPassed() { return passed; }
-    public List<QuizAnswer> getAnswers() { return answers; }
-
-    public MilestoneResponse getMilestoneResponse() { return milestoneResponse; }
-    public void setMilestoneResponse(MilestoneResponse milestoneResponse) { this.milestoneResponse = milestoneResponse; }
-
-    public Double getPointsEarned() { return pointsEarned; }
-    public void setPointsEarned(Double pointsEarned) { this.pointsEarned = pointsEarned; }
 }

@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,6 +45,7 @@ class ArticleServiceImplTest {
     private UUID articleId;
     private UUID categoryId;
     private Article article;
+    private Article deletedArticle;
     private Category category;
     private User user;
     private ArticleRequest request;
@@ -70,6 +72,15 @@ class ArticleServiceImplTest {
                 .category(category)
                 .createdBy(user)
                 .build();
+
+        deletedArticle = Article.builder()
+                .id(UUID.randomUUID())
+                .title("Deleted Article")
+                .content("Deleted Content")
+                .category(category)
+                .createdBy(user)
+                .build();
+        deletedArticle.softDelete(DUMMY_USERNAME);
 
         request = new ArticleRequest();
         request.setTitle(DUMMY_TITLE);
@@ -107,6 +118,17 @@ class ArticleServiceImplTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    void getAllArticles_shouldFilterOutDeletedArticles() {
+        when(articleRepository.findAll()).thenReturn(List.of(article, deletedArticle));
+        when(articleMapper.toResponse(article)).thenReturn(response);
+
+        List<ArticleResponse> result = articleService.getAllArticles();
+
+        assertEquals(1, result.size());
+        verify(articleMapper, times(1)).toResponse(article);
+        verify(articleMapper, never()).toResponse(deletedArticle);
+    }
 
     @Test
     void getArticleById_whenFound_shouldReturnArticle() {
@@ -129,6 +151,15 @@ class ArticleServiceImplTest {
         verify(articleMapper, never()).toResponse(any());
     }
 
+    @Test
+    void getArticleById_whenDeleted_shouldThrowException() {
+        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> articleService.getArticleById(deletedArticle.getId()));
+
+        verify(articleMapper, never()).toResponse(any());
+    }
 
     @Test
     void createArticle_whenValid_shouldReturnCreatedArticle() {
@@ -164,7 +195,6 @@ class ArticleServiceImplTest {
         verify(articleRepository, never()).save(any());
     }
 
-
     @Test
     void updateArticle_whenValid_shouldReturnUpdatedArticle() {
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
@@ -199,14 +229,33 @@ class ArticleServiceImplTest {
         verify(articleRepository, never()).save(any());
     }
 
+    @Test
+    void updateArticle_shouldUpdateFieldsCorrectly() {
+        ArticleRequest updateRequest = new ArticleRequest();
+        updateRequest.setTitle("New Title");
+        updateRequest.setContent("New Content");
+        updateRequest.setCategoryId(categoryId);
+
+        when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(articleRepository.save(any(Article.class))).thenReturn(article);
+        when(articleMapper.toResponse(article)).thenReturn(response);
+
+        articleService.updateArticle(articleId, updateRequest);
+
+        assertEquals("New Title", article.getTitle());
+        assertEquals("New Content", article.getContent());
+    }
 
     @Test
-    void deleteArticle_whenFound_shouldDelete() {
+    void deleteArticle_whenFound_shouldSoftDelete() {
         when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
 
-        assertDoesNotThrow(() -> articleService.deleteArticle(articleId, "admin"));
+        assertDoesNotThrow(() -> articleService.deleteArticle(articleId, DUMMY_USERNAME));
 
-        verify(articleRepository, times(1)).save(article); // ganti deleteById → save
+        assertNotNull(article.getDeletedAt());
+        assertEquals(DUMMY_USERNAME, article.getDeletedBy());
+        verify(articleRepository, times(1)).save(article);
     }
 
     @Test
@@ -214,8 +263,44 @@ class ArticleServiceImplTest {
         when(articleRepository.findById(articleId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> articleService.deleteArticle(articleId, "admin"));
+                () -> articleService.deleteArticle(articleId, DUMMY_USERNAME));
 
-        verify(articleRepository, never()).save(any()); // ganti deleteById → save
+        verify(articleRepository, never()).save(any());
+    }
+
+    @Test
+    void deleteArticle_whenAlreadyDeleted_shouldThrowIllegalStateException() {
+        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+
+        assertThrows(IllegalStateException.class,
+                () -> articleService.deleteArticle(deletedArticle.getId(), DUMMY_USERNAME));
+
+        verify(articleRepository, never()).save(any());
+    }
+
+    @Test
+    void getDeletedArticles_shouldReturnOnlyDeletedArticles() {
+        ArticleResponse deletedResponse = ArticleResponse.builder()
+                .id(deletedArticle.getId())
+                .title("Deleted Article")
+                .build();
+
+        when(articleRepository.findAll()).thenReturn(List.of(article, deletedArticle));
+        when(articleMapper.toResponse(deletedArticle)).thenReturn(deletedResponse);
+
+        List<ArticleResponse> result = articleService.getDeletedArticles();
+
+        assertEquals(1, result.size());
+        assertEquals(deletedResponse, result.get(0));
+        verify(articleMapper, never()).toResponse(article);
+    }
+
+    @Test
+    void getDeletedArticles_whenNoDeletedArticles_shouldReturnEmptyList() {
+        when(articleRepository.findAll()).thenReturn(List.of(article));
+
+        List<ArticleResponse> result = articleService.getDeletedArticles();
+
+        assertTrue(result.isEmpty());
     }
 }

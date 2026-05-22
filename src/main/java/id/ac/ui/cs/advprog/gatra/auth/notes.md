@@ -24,3 +24,32 @@ Untuk memutus siklus pemanggilan database di dalam *looping*,mengimplementasikan
 **Hasil Perbandingan (Profiling):**
 - **Sebelum:** O(N) Query — Jumlah eksekusi query bergantung pada jumlah pengguna (contoh: puluhan hingga ribuan query).
 - **Sesudah:** O(1) Relatif — Kompleksitas query konstan menjadi tepat **3 query SQL** untuk *request* sebesar apapun.
+
+## Profiling endpoint login dan register
+![img.png](../../../../../../../../../../assets/profiling-endpoint-auth.png)
+
+#### Justifikasi Proses Profiling
+Untuk mengevaluasi performa modul Autentikasi (`auth/user`), proses profiling dilakukan di tingkat API menggunakan fitur **Performance Testing pada Postman**. Pendekatan *Black-box API Profiling* ini dipilih dengan justifikasi:
+1. **Simulasi Real-World Load:** Postman mensimulasikan beban nyata secara *concurrent* (misalnya 30 *Virtual Users* secara bersamaan) untuk melihat bagaimana sistem merespons lonjakan trafik yang tiba-tiba (*spike*).
+2. **Karakteristik Modul Auth:** Modul autentikasi bersifat *CPU-bound* akibat proses kriptografi (*password hashing* seperti BCrypt) dan operasi I/O ke pangkalan data saat memvalidasi *username*/*email*. Memantau *response time* dan *throughput* dari luar memberikan matriks paling akurat tentang pengalaman pengguna akhir (*End-User Latency*).
+
+## Monitoring
+![img.png](../../../../../../../../../../assets/monitoring-auth.png)
+### Justifikasi Desain & Implementasi Monitoring
+
+Implementasi sistem monitoring pada modul `auth/user` di aplikasi Gatra dirancang untuk mencapai tingkat **Observabilitas (Observability)** yang komprehensif. Arsitektur pemantauan ini dibangun menggunakan **Spring Boot Actuator** dan **Micrometer Prometheus**, yang kemudian diintegrasikan dengan **Prometheus Server** dan **Grafana** untuk visualisasi antarmuka grafis (GUI).
+
+
+#### 1. Keamanan Akses Data Internal (Strategi Port Separation)
+Mengacu pada *best practice* keamanan DevOps, data observabilitas internal tidak boleh terekspos secara bebas ke jaringan internet publik. Oleh karena itu, arsitektur dikonfigurasi secara berlapis:
+* **Environment Development (Local):** Endpoint `/actuator/health` dan `/actuator/prometheus` dibuka pada port utama (`8080`) untuk mempermudah tim melakukan *debugging* lokal.
+* **Environment Production (Azure App Service / VM):** Pada berkas `application-prod.properties`, diterapkan strategi **Port Separation** melalui konfigurasi `management.server.port=8081`. Aplikasi utama melayani pengguna publik di port 80/8080, sementara port metrik (8081) diisolasi oleh *firewall* / Network Security Group (NSG) bawaan Azure. Hal ini mencegah eksploitasi data oleh pihak luar, sementara metrik tetap aman untuk di-*scrape* oleh sistem internal.
+
+#### 2. Implementasi Custom Business Metric
+Selain memantau infrastruktur standar (*CPU usage, JVM memory, database connection pool*), sistem ini menginjeksi metrik bisnis spesifik menggunakan komponen *Counter* dari Micrometer, yaitu `gatra.auth.registered.users` pada kelas `AuthServiceImpl`.
+* **Justifikasi:** Modul autentikasi adalah gerbang utama aplikasi. Dengan memantau metrik pendaftaran akun secara dinamis, tim pengembang tidak hanya mendapatkan analitik performa bisnis, tetapi juga dapat memprediksi lonjakan trafik untuk melakukan penyesuaian skala (*scaling*) infrastruktur secara proaktif.
+
+#### 3. Visualisasi dan Pemantauan Real-Time (GUI)
+Agar metrik yang terekspos dapat dibaca dan dianalisis oleh manusia dengan mudah, alur monitoring dilanjutkan ke tahap visualisasi menggunakan standar industri pemantauan modern:
+1. **Scraping (Prometheus):** Server Prometheus dikonfigurasi secara mandiri untuk secara berkala (*polling*) mengambil data mentah dari *endpoint* `localhost:8081/actuator/prometheus` milik aplikasi Gatra.
+2. **Dashboarding (Grafana):** Grafana dihubungkan ke *database* Prometheus sebagai *Data Source*. Metrik `gatra_auth_registered_users_total` divisualisasikan ke dalam bentuk grafik *Time-Series* (GUI) yang interaktif.

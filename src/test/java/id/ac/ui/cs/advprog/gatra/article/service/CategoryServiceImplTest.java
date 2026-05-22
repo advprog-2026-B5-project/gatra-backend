@@ -2,17 +2,21 @@ package id.ac.ui.cs.advprog.gatra.article.service;
 
 import id.ac.ui.cs.advprog.gatra.article.dto.CategoryRequest;
 import id.ac.ui.cs.advprog.gatra.article.dto.CategoryResponse;
+import id.ac.ui.cs.advprog.gatra.article.model.Article;
+import id.ac.ui.cs.advprog.gatra.article.model.Category;
+import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
+import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.article.mapper.CategoryMapper;
-import id.ac.ui.cs.advprog.gatra.article.model.Category;
-import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,8 +30,10 @@ class CategoryServiceImplTest {
 
     private static final String DUMMY_NAME = "Technology";
     private static final String UPDATED_NAME = "Science";
+    private static final String FALLBACK_NAME = "Dll";
 
     @Mock private CategoryRepository categoryRepository;
+    @Mock private ArticleRepository articleRepository;
     @Mock private CategoryMapper categoryMapper;
 
     @InjectMocks
@@ -35,6 +41,7 @@ class CategoryServiceImplTest {
 
     private UUID categoryId;
     private Category category;
+    private Category fallbackCategory;
     private CategoryRequest request;
     private CategoryResponse response;
 
@@ -45,6 +52,11 @@ class CategoryServiceImplTest {
         category = Category.builder()
                 .id(categoryId)
                 .name(DUMMY_NAME)
+                .build();
+
+        fallbackCategory = Category.builder()
+                .id(UUID.randomUUID())
+                .name(FALLBACK_NAME)
                 .build();
 
         request = new CategoryRequest();
@@ -78,6 +90,22 @@ class CategoryServiceImplTest {
         verify(categoryMapper, never()).toResponse(any());
     }
 
+    @Test
+    void getAllCategories_shouldFilterOutDeletedCategories() {
+        Category deletedCategory = Category.builder()
+                .id(UUID.randomUUID())
+                .name("Deleted")
+                .deletedAt(LocalDateTime.now())
+                .build();
+
+        when(categoryRepository.findAll()).thenReturn(List.of(category, deletedCategory));
+        when(categoryMapper.toResponse(category)).thenReturn(response);
+
+        List<CategoryResponse> result = categoryService.getAllCategories();
+
+        assertEquals(1, result.size());
+        verify(categoryMapper, never()).toResponse(deletedCategory);
+    }
 
     @Test
     void getCategoryById_whenFound_shouldReturnCategory() {
@@ -100,7 +128,6 @@ class CategoryServiceImplTest {
         verify(categoryMapper, never()).toResponse(any());
     }
 
-
     @Test
     void createCategory_whenValid_shouldReturnCreatedCategory() {
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
@@ -112,6 +139,17 @@ class CategoryServiceImplTest {
         verify(categoryRepository, times(1)).save(any(Category.class));
     }
 
+    @Test
+    void createCategory_shouldSaveCategoryWithCorrectName() {
+        when(categoryRepository.save(any(Category.class))).thenReturn(category);
+        when(categoryMapper.toResponse(category)).thenReturn(response);
+
+        categoryService.createCategory(request);
+
+        ArgumentCaptor<Category> captor = ArgumentCaptor.forClass(Category.class);
+        verify(categoryRepository).save(captor.capture());
+        assertEquals(DUMMY_NAME, captor.getValue().getName());
+    }
 
     @Test
     void updateCategory_whenFound_shouldReturnUpdatedCategory() {
@@ -143,14 +181,30 @@ class CategoryServiceImplTest {
         verify(categoryRepository, never()).save(any());
     }
 
+    @Test
+    void updateCategory_shouldUpdateNameCorrectly() {
+        CategoryRequest updateRequest = new CategoryRequest();
+        updateRequest.setName(UPDATED_NAME);
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.save(any(Category.class))).thenReturn(category);
+        when(categoryMapper.toResponse(category)).thenReturn(response);
+
+        categoryService.updateCategory(categoryId, updateRequest);
+
+        assertEquals(UPDATED_NAME, category.getName());
+    }
 
     @Test
-    void deleteCategory_whenFound_shouldDelete() {
+    void deleteCategory_whenFound_shouldSoftDelete() {
         when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByName(FALLBACK_NAME)).thenReturn(Optional.of(fallbackCategory));
+        when(articleRepository.findByCategoryId(categoryId)).thenReturn(List.of());
 
         assertDoesNotThrow(() -> categoryService.deleteCategory(categoryId));
 
-        verify(categoryRepository, times(1)).deleteById(categoryId);
+        assertNotNull(category.getDeletedAt());
+        verify(categoryRepository, times(1)).save(category);
     }
 
     @Test
@@ -161,5 +215,50 @@ class CategoryServiceImplTest {
                 () -> categoryService.deleteCategory(categoryId));
 
         verify(categoryRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void deleteCategory_whenFallbackNotExist_shouldCreateFallback() {
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByName(FALLBACK_NAME)).thenReturn(Optional.empty());
+        when(categoryRepository.save(any(Category.class))).thenReturn(fallbackCategory);
+        when(articleRepository.findByCategoryId(categoryId)).thenReturn(List.of());
+
+        categoryService.deleteCategory(categoryId);
+
+        verify(categoryRepository, times(2)).save(any(Category.class));
+    }
+
+    @Test
+    void deleteCategory_shouldReassignArticlesToFallback() {
+        Article article = new Article();
+        article.setCategory(category);
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByName(FALLBACK_NAME)).thenReturn(Optional.of(fallbackCategory));
+        when(articleRepository.findByCategoryId(categoryId)).thenReturn(List.of(article));
+
+        categoryService.deleteCategory(categoryId);
+
+        assertEquals(fallbackCategory, article.getCategory());
+        verify(articleRepository, times(1)).save(article);
+    }
+
+    @Test
+    void deleteCategory_withMultipleArticles_shouldReassignAll() {
+        Article article1 = new Article();
+        article1.setCategory(category);
+        Article article2 = new Article();
+        article2.setCategory(category);
+
+        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(category));
+        when(categoryRepository.findByName(FALLBACK_NAME)).thenReturn(Optional.of(fallbackCategory));
+        when(articleRepository.findByCategoryId(categoryId)).thenReturn(List.of(article1, article2));
+
+        categoryService.deleteCategory(categoryId);
+
+        assertEquals(fallbackCategory, article1.getCategory());
+        assertEquals(fallbackCategory, article2.getCategory());
+        verify(articleRepository, times(2)).save(any(Article.class));
     }
 }
