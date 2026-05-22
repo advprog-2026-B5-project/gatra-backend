@@ -39,7 +39,7 @@ public class ClanMembership {
     private MembershipState state = new PendingState();
 
     @PostLoad
-    private void initState() {
+    void initState() {
         this.state = switch (this.status) {
             case PENDING   -> new PendingState();
             case APPROVED  -> new ApprovedState();

@@ -5,8 +5,7 @@ import java.util.List;
 
 public interface ClanMembershipService {
     MembershipResponse applyToClan(String clanId, String userId);
-    MembershipResponse decideMembership(String clanId, String applicantId,
-                                        MembershipDecisionRequest request, String leaderId);
+    MembershipResponse decideMembership(MembershipDecisionRequest request);
     List<MembershipResponse> getPendingApplications(String clanId, String leaderId);
     void leaveClan(String clanId, String userId);
 }

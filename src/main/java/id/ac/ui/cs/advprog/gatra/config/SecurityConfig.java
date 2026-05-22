@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.gatra.config;
 
-import id.ac.ui.cs.advprog.gatra.security.JwtAuthenticationFilter;
-import id.ac.ui.cs.advprog.gatra.security.OAuth2LoginSuccessHandler;
+import id.ac.ui.cs.advprog.gatra.auth.security.JwtAuthenticationFilter;
+import id.ac.ui.cs.advprog.gatra.auth.security.OAuth2LoginSuccessHandler;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +40,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/achievements/*/display").hasAnyRole("STUDENT", "USER")
                         .requestMatchers("/api/achievements/me", "/api/achievements/me/**").authenticated()

@@ -5,6 +5,8 @@ import id.ac.ui.cs.advprog.gatra.achievement.service.UserAchievementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,21 +21,23 @@ public class StudentAchievementController {
     private final UserAchievementService userAchievementService;
 
     @GetMapping("/me")
-    public ResponseEntity<List<AchievementResponse>> getMyAchievements(java.security.Principal principal) {
-        return ResponseEntity.ok(userAchievementService.getMyAchievements(principal.getName()));
+    public ResponseEntity<List<AchievementResponse>> getMyAchievements(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userAchievementService.getMyAchievements(userDetails.getUsername()));
     }
 
     @GetMapping("/me/displayed")
-    public ResponseEntity<List<AchievementResponse>> getDisplayedAchievements(java.security.Principal principal) {
-        return ResponseEntity.ok(userAchievementService.getDisplayedAchievements(principal.getName()));
+    public ResponseEntity<List<AchievementResponse>> getDisplayedAchievements(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userAchievementService.getDisplayedAchievements(userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/display")
     public ResponseEntity<Void> toggleDisplayAchievement(
-            @PathVariable UUID id, @RequestParam boolean displayed,
-            java.security.Principal principal)
-    {
-        userAchievementService.toggleDisplayAchievement(principal.getName(), id, displayed);
+            @PathVariable UUID id,
+            @RequestParam boolean displayed,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        userAchievementService.toggleDisplayAchievement(userDetails.getUsername(), id, displayed);
         return ResponseEntity.noContent().build();
     }
-}
+}

@@ -12,12 +12,15 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class DailyMissionServiceImpl implements DailyMissionService {
+
+    private static final int MAX_ACTIVE_MISSIONS = 3;
 
     private final DailyMissionRepository missionRepository;
     private final DailyMissionMapper missionMapper;
@@ -68,9 +71,9 @@ public class DailyMissionServiceImpl implements DailyMissionService {
         List<DailyMission> allMissions = missionRepository.findAll();
         allMissions.forEach(m -> m.setStatus(MissionStatus.INACTIVE));
 
-        java.util.Collections.shuffle(allMissions);
+        Collections.shuffle(allMissions);
         allMissions.stream()
-            .limit(3)
+            .limit(MAX_ACTIVE_MISSIONS)
             .forEach(m -> m.setStatus(MissionStatus.ACTIVE));
 
         missionRepository.saveAll(allMissions);

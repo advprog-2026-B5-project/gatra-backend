@@ -25,4 +25,11 @@ public class LeaderboardController {
             @PathVariable String tier) {
         return ResponseEntity.ok(leaderboardService.getLeaderboardByTier(tier));
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Void> handleInvalidTier() {
+        return ResponseEntity.badRequest().build();
+    }
+
+
 }

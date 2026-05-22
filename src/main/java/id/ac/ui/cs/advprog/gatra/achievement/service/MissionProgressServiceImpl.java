@@ -1,21 +1,19 @@
 package id.ac.ui.cs.advprog.gatra.achievement.service;
 
 import id.ac.ui.cs.advprog.gatra.achievement.dto.MissionProgressResponse;
-import id.ac.ui.cs.advprog.gatra.clan.model.MembershipStatus;
-import id.ac.ui.cs.advprog.gatra.clan.repository.ClanMembershipRepository;
+import id.ac.ui.cs.advprog.gatra.achievement.event.MissionRewardClaimedEvent;
 import id.ac.ui.cs.advprog.gatra.exception.ResourceNotFoundException;
 import id.ac.ui.cs.advprog.gatra.achievement.mapper.MissionProgressMapper;
 import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.achievement.model.DailyMission;
 import id.ac.ui.cs.advprog.gatra.achievement.model.MissionStatus;
-import id.ac.ui.cs.advprog.gatra.model.User;
+import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.achievement.model.UserMissionProgress;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.DailyMissionRepository;
 import id.ac.ui.cs.advprog.gatra.achievement.repository.UserMissionProgressRepository;
-import id.ac.ui.cs.advprog.gatra.service.UserService;
-import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
-import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
+import id.ac.ui.cs.advprog.gatra.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,8 +30,7 @@ public class MissionProgressServiceImpl implements MissionProgressService {
     private final UserMissionProgressRepository progressRepository;
     private final UserService userService;
     private final MissionProgressMapper progressMapper;
-    private final ClanMembershipRepository clanMembershipRepository;
-    private final PointRecordingService pointRecordingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public List<MissionProgressResponse> getActiveMissionsWithProgress(String username) {
@@ -113,19 +110,8 @@ public class MissionProgressServiceImpl implements MissionProgressService {
         progress.setIsClaimed(true);
         progressRepository.save(progress);
 
-        clanMembershipRepository.findFirstByUserIdAndStatus(userId.toString(), MembershipStatus.APPROVED)
-                .ifPresent(membership -> {
-                    double rewardPoints = mission.getRewardPoints() != null ? mission.getRewardPoints() : 0.0;
-                    if (rewardPoints > 0) {
-                        pointRecordingService.recordPoints(
-                                userId.toString(),
-                                membership.getClan().getId(),
-                                rewardPoints,
-                                PointActivityType.DAILY_MISSION_COMPLETED,
-                                missionId.toString()
-                        );
-                    }
-                });
+        int rewardPoints = mission.getRewardPoints() != null ? mission.getRewardPoints() : 0;
+        eventPublisher.publishEvent(new MissionRewardClaimedEvent(userId, missionId, rewardPoints));
 
         return progressMapper.toResponse(mission, progress);
     }
