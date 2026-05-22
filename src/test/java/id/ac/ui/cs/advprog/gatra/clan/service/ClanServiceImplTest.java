@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import io.micrometer.core.instrument.Counter;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,11 +38,11 @@ class ClanServiceImplTest {
 
     @BeforeEach
     void setUp() {
-
+        mockCounter = mock(Counter.class);
         dummyClan = Clan.builder().id(clanId).name("Test Clan").description("Desc").tier("BRONZE").build();
-        when(metricsService.getClanCreatedCounter()).thenReturn(mockCounter);
-        when(metricsService.getClanDeletedCounter()).thenReturn(mockCounter);
-        when(metricsService.getMembershipKickedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getClanCreatedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getClanDeletedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipKickedCounter()).thenReturn(mockCounter);
     }
 
     @Test

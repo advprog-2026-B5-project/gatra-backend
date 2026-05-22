@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ClanSeasonServiceImplTest {
@@ -36,7 +37,7 @@ class ClanSeasonServiceImplTest {
     @BeforeEach
     void setUp() {
         mockCounter = mock(Counter.class);
-        when(metricsService.getSeasonResetCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getSeasonResetCounter()).thenReturn(mockCounter);
     }
 
     @Test

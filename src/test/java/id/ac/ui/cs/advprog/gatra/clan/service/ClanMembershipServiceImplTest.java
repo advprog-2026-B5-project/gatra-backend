@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ClanMembershipServiceImplTest {
@@ -33,10 +34,10 @@ class ClanMembershipServiceImplTest {
     @BeforeEach
     void setUp() {
         mockCounter = mock(Counter.class);
-        when(metricsService.getMembershipAppliedCounter()).thenReturn(mockCounter);
-        when(metricsService.getMembershipApprovedCounter()).thenReturn(mockCounter);
-        when(metricsService.getMembershipRejectedCounter()).thenReturn(mockCounter);
-        when(metricsService.getMembershipLeftCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipAppliedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipApprovedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipRejectedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getMembershipLeftCounter()).thenReturn(mockCounter);
     }
 
     @Test

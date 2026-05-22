@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import io.micrometer.core.instrument.Counter;
+import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 
@@ -42,15 +43,13 @@ class LeaderboardServiceImplTest {
     void setUp() {
         clan1 = Clan.builder().id("clan1").name("Clan Satu").tier("BRONZE").build();
         clan2 = Clan.builder().id("clan2").name("Clan Dua").tier("BRONZE").build();
-
         entry1 = LeaderboardEntryResponse.builder()
                 .clanId("clan1").clanName("Clan Satu").tier("BRONZE").score(150.0).rank(2).build();
         entry2 = LeaderboardEntryResponse.builder()
                 .clanId("clan2").clanName("Clan Dua").tier("BRONZE").score(200.0).rank(1).build();
-
         Counter mockCounter = mock(Counter.class);
-        when(metricsService.getLeaderboardViewedCounter()).thenReturn(mockCounter);
-        when(metricsService.getLeaderboardByTierViewedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getLeaderboardViewedCounter()).thenReturn(mockCounter);
+        lenient().when(metricsService.getLeaderboardByTierViewedCounter()).thenReturn(mockCounter);
     }
 
     @Test
