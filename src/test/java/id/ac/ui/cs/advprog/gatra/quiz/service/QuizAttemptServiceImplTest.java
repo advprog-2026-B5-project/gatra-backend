@@ -19,6 +19,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuizAttemptRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
 import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,9 @@ class QuizAttemptServiceImplTest {
     
     @Mock
     private PointRecordingService pointRecordingService;
+
+    @Mock
+    private MonitoringQuestion monitoringQuestion;
 
     @InjectMocks
     private QuizAttemptServiceImpl quizAttemptService;
@@ -144,6 +148,9 @@ class QuizAttemptServiceImplTest {
                 PointActivityType.QUIZ_PASSED,
                 articleId.toString()
         );
+        verify(monitoringQuestion, times(1)).incrementQuizSubmitted();
+        verify(monitoringQuestion, times(1)).incrementQuizPassed();
+        verify(monitoringQuestion, never()).incrementQuizFailed();
     }
 
     @Test
@@ -171,6 +178,9 @@ class QuizAttemptServiceImplTest {
 
         verify(milestoneService, never()).recordAction(any(), any());
         verify(pointRecordingService, never()).recordPoints(anyString(), any(), anyDouble(), any(), anyString());
+        verify(monitoringQuestion, times(1)).incrementQuizSubmitted();
+        verify(monitoringQuestion, never()).incrementQuizPassed();
+        verify(monitoringQuestion, times(1)).incrementQuizFailed();
     }
 
     @Test

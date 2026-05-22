@@ -16,6 +16,7 @@ import id.ac.ui.cs.advprog.gatra.scoring.model.PointActivityType;
 import id.ac.ui.cs.advprog.gatra.scoring.service.PointRecordingService;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MilestoneService;
 import id.ac.ui.cs.advprog.gatra.achievement.service.MissionProgressService;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,6 +41,8 @@ class QuizAttemptScoringIntegrationTest {
     @Mock private ArticleRepository articleRepository;
     @Mock private MilestoneService milestoneService;
     @Mock private MissionProgressService missionProgressService;
+    @Mock
+    private MonitoringQuestion monitoringQuestion;
 
     // Core mocks for this integration test
     @Mock private ClanMembershipRepository clanMembershipRepository;

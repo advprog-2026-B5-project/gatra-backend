@@ -2,7 +2,6 @@ package id.ac.ui.cs.advprog.gatra.scoring.service;
 
 import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,7 +12,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class SeasonServiceImplTest {
+class SeasonServiceImplTest {
 
     @Mock
     private StudentProfileRepository studentProfileRepository;
@@ -23,10 +22,6 @@ public class SeasonServiceImplTest {
 
     @InjectMocks
     private SeasonServiceImpl seasonService;
-
-    @BeforeEach
-    void setUp() {
-    }
 
     @Test
     void testResetSeason_ShouldCallAllRepositoryResetMethods() {

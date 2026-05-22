@@ -2,18 +2,16 @@ package id.ac.ui.cs.advprog.gatra.scoring.service;
 
 import id.ac.ui.cs.advprog.gatra.auth.repository.StudentProfileRepository;
 import id.ac.ui.cs.advprog.gatra.scoring.repository.PointHistoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class SeasonServiceImpl implements SeasonService {
 
-    @Autowired
-    private StudentProfileRepository studentProfileRepository;
-
-    @Autowired
-    private PointHistoryRepository pointHistoryRepository;
+    private final StudentProfileRepository studentProfileRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     @Override
     @Transactional

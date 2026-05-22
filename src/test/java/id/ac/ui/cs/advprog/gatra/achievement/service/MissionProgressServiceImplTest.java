@@ -83,9 +83,6 @@ class MissionProgressServiceImplTest {
                 .isClaimed(false)
                 .build();
     }
-
-    // ========== getActiveMissionsWithProgress ==========
-
     @Test
     void getActiveMissionsWithProgress_shouldReturnMissionsWithProgress() {
         when(userService.getUserEntityByUsername(username)).thenReturn(user);
@@ -128,7 +125,6 @@ class MissionProgressServiceImplTest {
         assertTrue(result.isEmpty());
     }
 
-    // ========== incrementProgress ==========
 
     @Test
     void incrementProgress_shouldIncrementCount() {
@@ -208,7 +204,6 @@ class MissionProgressServiceImplTest {
         when(userService.getUserEntityById(userId)).thenReturn(user);
         when(dailyMissionRepository.findByStatus(MissionStatus.ACTIVE)).thenReturn(List.of(mission));
 
-        // mission has READ_ARTICLE but we pass FINISH_QUIZ
         List<MissionProgressResponse> result = missionProgressService.incrementProgress(userId, "FINISH_QUIZ");
 
         assertTrue(result.isEmpty());
@@ -231,8 +226,6 @@ class MissionProgressServiceImplTest {
         verify(progressRepository).save(progress);
         verify(progressMapper, never()).toResponse(any(), any());
     }
-
-    // ========== claimReward ==========
 
     @Test
     void claimReward_whenCompleted_shouldSetClaimedAndPublishEvent() {

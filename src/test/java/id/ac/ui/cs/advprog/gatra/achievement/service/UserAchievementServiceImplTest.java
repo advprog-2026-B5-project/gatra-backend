@@ -32,7 +32,6 @@ class UserAchievementServiceImplTest {
     @Mock
     private UserAchievementRepository userAchievementRepository;
 
-    // ADDED: We must mock UserService now because the service depends on it for UUID lookups
     @Mock
     private UserService userService;
 
@@ -46,7 +45,7 @@ class UserAchievementServiceImplTest {
 
     private UserAchievementServiceImpl userAchievementService;
 
-    private final String USERNAME = "user123";
+    private final String username = "user123";
     private UUID achievementId;
     private UUID userId;
     private User mockUser;
@@ -57,7 +56,7 @@ class UserAchievementServiceImplTest {
         achievementId = UUID.randomUUID();
         userId = UUID.randomUUID();
 
-        mockUser = User.builder().id(userId).username(USERNAME).build();
+        mockUser = User.builder().id(userId).username(username).build();
 
         userAchievement = new UserAchievement();
         userAchievement.setUserId(userId);
@@ -73,9 +72,9 @@ class UserAchievementServiceImplTest {
 
     @Test
     void getMyAchievements_ShouldReturnListOfResponse() {
-        String username = "testUser";
+        String testUsername = "testUser";
         UUID currentUserId = UUID.randomUUID();
-        User currentUser = User.builder().id(currentUserId).username(username).build();
+        User currentUser = User.builder().id(currentUserId).username(testUsername).build();
 
         Achievement ach = Achievement.builder().name("Master Kuis").build();
 
@@ -88,26 +87,24 @@ class UserAchievementServiceImplTest {
 
         AchievementResponse response = AchievementResponse.builder().name("Master Kuis").build();
 
-        // 1. Mock the username -> UUID translation
-        when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
-        // 2. Mock the new repository method
+        when(userService.getUserEntityByUsername(testUsername)).thenReturn(currentUser);
         when(userAchievementRepository.findByUserId(currentUserId)).thenReturn(List.of(relation));
         when(achievementMapper.toResponseFromUserAchievement(relation)).thenReturn(response);
 
-        List<AchievementResponse> result = userAchievementService.getMyAchievements(username);
+        List<AchievementResponse> result = userAchievementService.getMyAchievements(testUsername);
 
         assertFalse(result.isEmpty());
         assertEquals("Master Kuis", result.get(0).getName());
 
-        verify(userService).getUserEntityByUsername(username);
+        verify(userService).getUserEntityByUsername(testUsername);
         verify(userAchievementRepository).findByUserId(currentUserId);
     }
 
     @Test
     void getDisplayedAchievements_shouldReturnLimitedList() {
-        String username = "rehema";
+        String testUsername = "rehema";
         UUID currentUserId = UUID.randomUUID();
-        User currentUser = User.builder().id(currentUserId).username(username).build();
+        User currentUser = User.builder().id(currentUserId).username(testUsername).build();
 
         Achievement ach = Achievement.builder().name("Test").build();
         UserAchievement rel1 = UserAchievement.builder().achievement(ach).build();
@@ -115,9 +112,7 @@ class UserAchievementServiceImplTest {
         UserAchievement rel3 = UserAchievement.builder().achievement(ach).build();
         UserAchievement rel4 = UserAchievement.builder().achievement(ach).build();
 
-        // 1. Mock the username -> UUID translation
-        when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
-        // 2. Mock the new repository method
+        when(userService.getUserEntityByUsername(testUsername)).thenReturn(currentUser);
         when(userAchievementRepository.findByUserIdAndIsDisplayedTrue(currentUserId))
                 .thenReturn(List.of(rel1, rel2, rel3, rel4));
 
@@ -129,52 +124,52 @@ class UserAchievementServiceImplTest {
         when(achievementMapper.toResponseFromUserAchievement(any()))
                 .thenReturn(displayedResponse);
 
-        List<AchievementResponse> result = userAchievementService.getDisplayedAchievements(username);
+        List<AchievementResponse> result = userAchievementService.getDisplayedAchievements(testUsername);
 
         assertEquals(3, result.size());
         assertTrue(result.get(0).isDisplayed());
 
-        verify(userService).getUserEntityByUsername(username);
+        verify(userService).getUserEntityByUsername(testUsername);
         verify(userAchievementRepository, times(1)).findByUserIdAndIsDisplayedTrue(currentUserId);
     }
 
     @Test
     void toggleDisplay_whenDisplayedTrue_shouldUseShowStrategy() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.of(userAchievement));
 
-        userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true);
+        userAchievementService.toggleDisplayAchievement(username, achievementId, true);
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
         verify(showStrategy, times(1)).execute(userAchievement);
         verify(hideStrategy, never()).execute(any());
     }
 
     @Test
     void toggleDisplay_whenDisplayedFalse_shouldUseHideStrategy() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.of(userAchievement));
 
-        userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, false);
+        userAchievementService.toggleDisplayAchievement(username, achievementId, false);
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
         verify(hideStrategy, times(1)).execute(userAchievement);
         verify(showStrategy, never()).execute(any());
     }
 
     @Test
     void toggleDisplay_whenNotFound_shouldThrowException() {
-        when(userService.getUserEntityByUsername(USERNAME)).thenReturn(mockUser);
+        when(userService.getUserEntityByUsername(username)).thenReturn(mockUser);
         when(userAchievementRepository.findByUserIdAndAchievementId(userId, achievementId))
                 .thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
-                userAchievementService.toggleDisplayAchievement(USERNAME, achievementId, true)
+                userAchievementService.toggleDisplayAchievement(username, achievementId, true)
         );
 
-        verify(userService).getUserEntityByUsername(USERNAME);
+        verify(userService).getUserEntityByUsername(username);
     }
 
     @Test

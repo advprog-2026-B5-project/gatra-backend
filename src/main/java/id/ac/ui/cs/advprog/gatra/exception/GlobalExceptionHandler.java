@@ -13,11 +13,14 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ERROR_KEY = "error";
+    private static final String TIMESTAMP_KEY = "timestamp";
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
-                "error", ex.getMessage(),
-                "timestamp", LocalDateTime.now().toString()
+                ERROR_KEY, ex.getMessage(),
+                TIMESTAMP_KEY, LocalDateTime.now().toString()
         ));
     }
 
@@ -31,23 +34,23 @@ public class GlobalExceptionHandler {
                 ));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
                 "errors", fieldErrors,
-                "timestamp", LocalDateTime.now().toString()
+                TIMESTAMP_KEY, LocalDateTime.now().toString()
         ));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                "error", ex.getMessage(),
-                "timestamp", LocalDateTime.now().toString()
+                ERROR_KEY, ex.getMessage(),
+                TIMESTAMP_KEY, LocalDateTime.now().toString()
         ));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                "error", "Terjadi kesalahan internal",
-                "timestamp", LocalDateTime.now().toString()
+                ERROR_KEY, "Terjadi kesalahan internal",
+                TIMESTAMP_KEY, LocalDateTime.now().toString()
         ));
     }
 }

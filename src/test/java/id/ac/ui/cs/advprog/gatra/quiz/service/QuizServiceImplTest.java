@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.model.TrueFalseQuestion;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
+import id.ac.ui.cs.advprog.gatra.quiz.monitoring.MonitoringQuestion;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,9 @@ class QuizServiceImplTest {
 
     @Mock
     private QuestionFactory questionFactory;
+
+    @Mock
+    private MonitoringQuestion monitoringQuestion;
 
     @InjectMocks
     private QuizServiceImpl quizService;
@@ -71,6 +75,7 @@ class QuizServiceImplTest {
         assertNotNull(result);
         assertEquals("Test Question", result.getText());
         verify(questionRepository, times(1)).save(any(Question.class));
+        verify(monitoringQuestion, times(1)).incrementQuestionCreated();
     }
 
     @Test
@@ -119,6 +124,7 @@ class QuizServiceImplTest {
         quizService.deleteQuestion(questionId);
 
         verify(questionRepository, times(1)).deleteById(questionId);
+        verify(monitoringQuestion, times(1)).incrementQuestionDeleted();
     }
 
     @Test
@@ -144,6 +150,7 @@ class QuizServiceImplTest {
 
         assertNotNull(result);
         verify(questionRepository, times(1)).save(any(Question.class));
+        verify(monitoringQuestion, times(1)).incrementQuestionUpdated();
     }
 
     @Test
@@ -167,6 +174,7 @@ class QuizServiceImplTest {
 
         assertEquals(80, dummyArticle.getPassingScore());
         verify(articleRepository, times(1)).save(dummyArticle);
+        verify(monitoringQuestion, times(1)).incrementPassingScoreUpdated();
     }
 
     @Test

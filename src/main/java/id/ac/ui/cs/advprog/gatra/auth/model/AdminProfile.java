@@ -28,6 +28,4 @@ public class AdminProfile {
     @MapsId
     @JoinColumn(name = "user_id")
     private User user;
-
-    // TODO: hal-hal yang diperlukan admin
 }

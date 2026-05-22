@@ -18,28 +18,28 @@ public class ClanValidatorImpl implements ClanValidator {
     @Override
     public Clan findClanOrThrow(String clanId) {
         return clanRepository.findById(clanId)
-                .orElseThrow(() -> new RuntimeException("Clan dengan id " + clanId + " tidak ditemukan"));
+                .orElseThrow(() -> new IllegalArgumentException("Clan dengan id " + clanId + " tidak ditemukan"));
     }
 
     @Override
     public void validateLeader(String clanId, String userId) {
         membershipRepository.findByClanIdAndUserId(clanId, userId)
                 .filter(m -> m.getRole() == ClanRole.LEADER)
-                .orElseThrow(() -> new RuntimeException("Hanya ketua clan yang dapat melakukan aksi ini"));
+                .orElseThrow(() -> new IllegalStateException("Hanya ketua clan yang dapat melakukan aksi ini"));
     }
 
     @Override
     public void validateUserNotInAnyClan(String userId) {
         if (membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.APPROVED) ||
                 membershipRepository.existsByUserIdAndStatus(userId, MembershipStatus.PENDING)) {
-            throw new RuntimeException("User sudah terdaftar atau memiliki pending di sebuah clan.");
+            throw new IllegalStateException("User sudah terdaftar atau memiliki pending di sebuah clan.");
         }
     }
 
     @Override
     public void validateNotSelfKick(String leaderId, String targetUserId) {
         if (leaderId.equals(targetUserId)) {
-            throw new RuntimeException("Ketua tidak bisa mengeluarkan diri sendiri melalui fitur kick.");
+            throw new IllegalArgumentException("Ketua tidak bisa mengeluarkan diri sendiri melalui fitur kick.");
         }
     }
 }

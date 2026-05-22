@@ -35,7 +35,5 @@ public class StudentProfile {
 
     private String currentLeagueTier = "Bronze";
 
-    // TODO: Implement integrasi dengan Clan dan lainnya
-
     private boolean isClanLeader = false;
 }

@@ -9,6 +9,7 @@ import id.ac.ui.cs.advprog.gatra.article.model.Category;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
+import id.ac.ui.cs.advprog.gatra.article.monitoring.MonitoringArticle;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,6 +38,8 @@ class ArticleServiceImplTest {
     @Mock private CategoryRepository categoryRepository;
     @Mock private UserRepository userRepository;
     @Mock private ArticleMapper articleMapper;
+    @Mock
+    private MonitoringArticle monitoringArticle;
 
     @InjectMocks
     private ArticleServiceImpl articleService;
@@ -139,6 +141,7 @@ class ArticleServiceImplTest {
 
         assertEquals(response, result);
         verify(articleRepository, times(1)).findById(articleId);
+        verify(monitoringArticle, times(1)).incrementArticleViewed();
     }
 
     @Test
@@ -153,10 +156,11 @@ class ArticleServiceImplTest {
 
     @Test
     void getArticleById_whenDeleted_shouldThrowException() {
-        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+        UUID deletedId = deletedArticle.getId();
+        when(articleRepository.findById(deletedId)).thenReturn(Optional.of(deletedArticle));
 
         assertThrows(ResourceNotFoundException.class,
-                () -> articleService.getArticleById(deletedArticle.getId()));
+                () -> articleService.getArticleById(deletedId));
 
         verify(articleMapper, never()).toResponse(any());
     }
@@ -172,6 +176,7 @@ class ArticleServiceImplTest {
 
         assertEquals(response, result);
         verify(articleRepository, times(1)).save(any(Article.class));
+        verify(monitoringArticle, times(1)).incrementArticleCreated();
     }
 
     @Test
@@ -256,6 +261,7 @@ class ArticleServiceImplTest {
         assertNotNull(article.getDeletedAt());
         assertEquals(DUMMY_USERNAME, article.getDeletedBy());
         verify(articleRepository, times(1)).save(article);
+        verify(monitoringArticle, times(1)).incrementArticleDeleted();
     }
 
     @Test
@@ -270,10 +276,11 @@ class ArticleServiceImplTest {
 
     @Test
     void deleteArticle_whenAlreadyDeleted_shouldThrowIllegalStateException() {
-        when(articleRepository.findById(deletedArticle.getId())).thenReturn(Optional.of(deletedArticle));
+        UUID deletedId = deletedArticle.getId();
+        when(articleRepository.findById(deletedId)).thenReturn(Optional.of(deletedArticle));
 
         assertThrows(IllegalStateException.class,
-                () -> articleService.deleteArticle(deletedArticle.getId(), DUMMY_USERNAME));
+                () -> articleService.deleteArticle(deletedId, DUMMY_USERNAME));
 
         verify(articleRepository, never()).save(any());
     }
