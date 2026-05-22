@@ -32,7 +32,6 @@ class UserAchievementServiceImplTest {
     @Mock
     private UserAchievementRepository userAchievementRepository;
 
-    // ADDED: We must mock UserService now because the service depends on it for UUID lookups
     @Mock
     private UserService userService;
 
@@ -88,9 +87,7 @@ class UserAchievementServiceImplTest {
 
         AchievementResponse response = AchievementResponse.builder().name("Master Kuis").build();
 
-        // 1. Mock the username -> UUID translation
         when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
-        // 2. Mock the new repository method
         when(userAchievementRepository.findByUserId(currentUserId)).thenReturn(List.of(relation));
         when(achievementMapper.toResponseFromUserAchievement(relation)).thenReturn(response);
 
@@ -115,9 +112,7 @@ class UserAchievementServiceImplTest {
         UserAchievement rel3 = UserAchievement.builder().achievement(ach).build();
         UserAchievement rel4 = UserAchievement.builder().achievement(ach).build();
 
-        // 1. Mock the username -> UUID translation
         when(userService.getUserEntityByUsername(username)).thenReturn(currentUser);
-        // 2. Mock the new repository method
         when(userAchievementRepository.findByUserIdAndIsDisplayedTrue(currentUserId))
                 .thenReturn(List.of(rel1, rel2, rel3, rel4));
 

@@ -24,5 +24,5 @@ public class DailyMission {
     private ActionType actionType;
 
     @Enumerated(EnumType.STRING)
-    private MissionStatus status; // Perubahan dari boolean ke Enum
+    private MissionStatus status;
 }

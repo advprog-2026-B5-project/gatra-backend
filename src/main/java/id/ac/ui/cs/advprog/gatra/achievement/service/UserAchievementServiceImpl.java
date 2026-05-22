@@ -45,7 +45,7 @@ public class UserAchievementServiceImpl implements UserAchievementService {
         UUID userId = userService.getUserEntityByUsername(username).getId();
         return userAchievementRepository.findByUserId(userId).stream()
                 .map(achievementMapper::toResponseFromUserAchievement)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -82,7 +82,6 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
         if (alreadyUnlocked) return false;
 
-        // SECURE FIX: We only save the UUID now, completely decoupling the User entity!
         UserAchievement userAchievement = UserAchievement.builder()
                 .userId(userId)
                 .achievement(achievement)

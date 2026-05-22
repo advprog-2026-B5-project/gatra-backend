@@ -40,4 +40,4 @@ public class StudentAchievementController {
         userAchievementService.toggleDisplayAchievement(userDetails.getUsername(), id, displayed);
         return ResponseEntity.noContent().build();
     }
-}
+}

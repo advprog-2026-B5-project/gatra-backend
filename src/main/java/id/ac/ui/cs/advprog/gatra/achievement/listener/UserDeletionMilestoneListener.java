@@ -16,7 +16,6 @@ public class UserDeletionMilestoneListener {
     @EventListener
     @Transactional
     public void handleUserDeletedEvent(UserDeletedEvent event) {
-        // Clean up milestone progress when a user is deleted
         studentMilestoneProgressRepository.deleteByUserId(event.userId());
     }
 }
