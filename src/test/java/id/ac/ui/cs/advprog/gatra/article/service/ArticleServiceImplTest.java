@@ -9,6 +9,7 @@ import id.ac.ui.cs.advprog.gatra.article.model.Category;
 import id.ac.ui.cs.advprog.gatra.auth.model.User;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
+import id.ac.ui.cs.advprog.gatra.article.Monitoring.MonitoringArticle;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +39,8 @@ class ArticleServiceImplTest {
     @Mock private CategoryRepository categoryRepository;
     @Mock private UserRepository userRepository;
     @Mock private ArticleMapper articleMapper;
+    @Mock
+    private MonitoringArticle monitoringArticle;
 
     @InjectMocks
     private ArticleServiceImpl articleService;
@@ -139,6 +142,7 @@ class ArticleServiceImplTest {
 
         assertEquals(response, result);
         verify(articleRepository, times(1)).findById(articleId);
+        verify(monitoringArticle, times(1)).incrementArticleViewed();
     }
 
     @Test
@@ -172,6 +176,7 @@ class ArticleServiceImplTest {
 
         assertEquals(response, result);
         verify(articleRepository, times(1)).save(any(Article.class));
+        verify(monitoringArticle, times(1)).incrementArticleCreated();
     }
 
     @Test
@@ -256,6 +261,7 @@ class ArticleServiceImplTest {
         assertNotNull(article.getDeletedAt());
         assertEquals(DUMMY_USERNAME, article.getDeletedBy());
         verify(articleRepository, times(1)).save(article);
+        verify(monitoringArticle, times(1)).incrementArticleDeleted();
     }
 
     @Test
