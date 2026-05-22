@@ -82,6 +82,7 @@ sonar {
         property("sonar.organization", "advprog-2026-b5-project")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
+        property("sonar.exclusions", ".github/workflows/**, build/**, src/test/**")
     }
 }
 
