@@ -16,12 +16,14 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     private final ClanRepository clanRepository;
     private final LeaderboardRankingBuilder rankingBuilder;
+    private final ClanMetricsService metricsService;
 
     @Override
     public TierLeaderboardResponse getLeaderboardByTier(String tier) {
         ClanTier.valueOf(tier.toUpperCase());
         List<Clan> clansInTier = clanRepository.findByTier(tier);
         List<LeaderboardEntryResponse> rankings = rankingBuilder.build(clansInTier);
+        metricsService.getLeaderboardByTierViewedCounter().increment();
         return TierLeaderboardResponse.builder()
                 .tier(tier)
                 .rankings(rankings)
@@ -30,8 +32,10 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     @Override
     public List<TierLeaderboardResponse> getAllTierLeaderboards() {
+        metricsService.getLeaderboardViewedCounter().increment();
         return Arrays.stream(ClanTier.values())
                 .map(tier -> getLeaderboardByTier(tier.name()))
                 .toList();
+
     }
 }
