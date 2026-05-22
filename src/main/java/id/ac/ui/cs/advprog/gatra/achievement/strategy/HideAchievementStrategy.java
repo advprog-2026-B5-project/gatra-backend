@@ -16,4 +16,4 @@ public class HideAchievementStrategy implements DisplayAchievementStrategy {
         userAchievement.setDisplayed(false);
         userAchievementRepository.save(userAchievement);
     }
-}
+}

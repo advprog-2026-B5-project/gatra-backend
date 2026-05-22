@@ -16,7 +16,6 @@ public class UserDeletionAchievementListener {
     @EventListener
     @Transactional
     public void handleUserDeletedEvent(UserDeletedEvent event) {
-        // When auth module announces a deletion, safely delete their achievements
         userAchievementRepository.deleteByUserId(event.userId());
     }
 }
