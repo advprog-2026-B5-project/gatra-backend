@@ -5,4 +5,8 @@ public enum ClanTier {
     SILVER,
     GOLD,
     DIAMOND;
+
+    public boolean isHighest() {
+        return this == values()[values().length - 1];
+    }
 }

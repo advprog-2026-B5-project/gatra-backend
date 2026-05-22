@@ -58,14 +58,20 @@ class ClanMembershipControllerTest {
     void decide_success() throws Exception {
         MembershipDecisionRequest req = new MembershipDecisionRequest();
         req.setDecision(MembershipStatus.APPROVED);
+        req.setLeaderId("leader1");
+        req.setApplicantId("app1");
+        req.setClanId("1");
 
-        MembershipResponse res = MembershipResponse.builder().status(MembershipStatus.APPROVED).build();
-        when(membershipService.decideMembership(eq("1"), eq("app1"), any(), eq("leader1"))).thenReturn(res);
+        MembershipResponse res = MembershipResponse.builder()
+                .status(MembershipStatus.APPROVED).build();
+
+        when(membershipService.decideMembership(any(MembershipDecisionRequest.class)))
+                .thenReturn(res);
 
         mockMvc.perform(patch("/clans/1/applications/app1")
-                .requestAttr("userId", "leader1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(req)))
+                        .requestAttr("userId", "leader1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("APPROVED"));
     }
