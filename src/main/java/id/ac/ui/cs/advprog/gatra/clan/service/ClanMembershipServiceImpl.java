@@ -17,6 +17,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
     private final ClanRepository clanRepository;
     private final ClanMembershipRepository membershipRepository;
     private final ClanValidator validator;
+    private final ClanMetricsService metricsService;
 
     @Override
     @Transactional
@@ -29,6 +30,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
                 .userId(userId)
                 .build();
         membershipRepository.save(membership);
+        metricsService.getMembershipAppliedCounter().increment();
         return toResponse(membership);
     }
 
@@ -44,11 +46,15 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
 
         if (request.getDecision() == MembershipStatus.APPROVED) {
             membership.approve();
+            metricsService.getMembershipApprovedCounter().increment();
+
         } else {
             membership.reject();
+            metricsService.getMembershipRejectedCounter().increment();
         }
 
         membershipRepository.save(membership);
+
         return toResponse(membership);
     }
 
@@ -70,6 +76,7 @@ public class ClanMembershipServiceImpl implements ClanMembershipService{
         }
 
         membershipRepository.delete(membership);
+        metricsService.getMembershipLeftCounter().increment();
     }
 
 
