@@ -81,7 +81,6 @@ public class UserAchievementServiceImpl implements UserAchievementService {
 
         if (alreadyUnlocked) return false;
 
-        // SECURE FIX: We only save the UUID now, completely decoupling the User entity!
         UserAchievement userAchievement = UserAchievement.builder()
                 .userId(userId)
                 .achievement(achievement)

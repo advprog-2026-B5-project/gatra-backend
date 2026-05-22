@@ -6,6 +6,7 @@ import id.ac.ui.cs.advprog.gatra.quiz.dto.CreateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.dto.UpdateQuestionRequest;
 import id.ac.ui.cs.advprog.gatra.quiz.model.Question;
 import id.ac.ui.cs.advprog.gatra.quiz.repository.QuestionRepository;
+import id.ac.ui.cs.advprog.gatra.quiz.Monitoring.MonitoringQuestion;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final ArticleRepository articleRepository;
     private final QuestionFactory questionFactory;
+    private final MonitoringQuestion monitoringQuestion;
 
     @Override
     public Question createQuestion(CreateQuestionRequest request) {
@@ -27,7 +29,10 @@ public class QuizServiceImpl implements QuizService {
         Question question = questionFactory.create(request.getType());
         question.applyCreate(request);
         question.setArticle(article);
-        return questionRepository.save(question);
+
+        Question savedQuestion = questionRepository.save(question);
+        monitoringQuestion.incrementQuestionCreated();
+        return savedQuestion;
     }
 
     @Override
@@ -35,13 +40,16 @@ public class QuizServiceImpl implements QuizService {
         Question question = findQuestionOrThrow(id);
 
         question.applyUpdate(request);
-        return questionRepository.save(question);
+        Question updatedQuestion = questionRepository.save(question);
+        monitoringQuestion.incrementQuestionUpdated();
+        return updatedQuestion;
     }
 
     @Override
     public void deleteQuestion(UUID id) {
         findQuestionOrThrow(id);
         questionRepository.deleteById(id);
+        monitoringQuestion.incrementQuestionDeleted();
     }
 
     @Override
@@ -66,6 +74,7 @@ public class QuizServiceImpl implements QuizService {
 
         article.setPassingScore(passingScore);
         articleRepository.save(article);
+        monitoringQuestion.incrementPassingScoreUpdated();
     }
 
     private Article findArticleOrThrow(UUID id) {

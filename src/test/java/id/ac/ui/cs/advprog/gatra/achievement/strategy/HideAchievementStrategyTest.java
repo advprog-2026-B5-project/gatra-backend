@@ -38,4 +38,4 @@ class HideAchievementStrategyTest {
         assertFalse(userAchievement.isDisplayed());
         verify(userAchievementRepository, times(1)).save(userAchievement);
     }
-}
+}

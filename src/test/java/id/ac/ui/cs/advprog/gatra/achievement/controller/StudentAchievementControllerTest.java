@@ -60,4 +60,4 @@ class StudentAchievementControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, result.getStatusCode());
         verify(userAchievementService, times(1)).toggleDisplayAchievement(username, achievementId, true);
     }
-}
+}

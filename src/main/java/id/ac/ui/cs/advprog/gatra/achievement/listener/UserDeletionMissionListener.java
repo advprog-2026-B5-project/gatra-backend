@@ -16,7 +16,6 @@ public class UserDeletionMissionListener {
     @EventListener
     @Transactional
     public void handleUserDeletedEvent(UserDeletedEvent event) {
-        // Clean up mission progress when a user is deleted
         userMissionProgressRepository.deleteByUserId(event.userId());
     }
 }

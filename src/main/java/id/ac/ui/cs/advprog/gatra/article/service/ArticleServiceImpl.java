@@ -14,6 +14,7 @@ import id.ac.ui.cs.advprog.gatra.achievement.model.ActionType;
 import id.ac.ui.cs.advprog.gatra.article.repository.ArticleRepository;
 import id.ac.ui.cs.advprog.gatra.article.repository.CategoryRepository;
 import id.ac.ui.cs.advprog.gatra.auth.repository.UserRepository;
+import id.ac.ui.cs.advprog.gatra.article.Monitoring.MonitoringArticle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,7 @@ public class ArticleServiceImpl implements ArticleService {
     private final ArticleMapper articleMapper;
     private final MilestoneService milestoneService;
     private final MissionProgressService missionProgressService;
+    private final MonitoringArticle monitoringArticle;
 
     private static final String ARTICLE_ENTITY = "Article";
 
@@ -48,6 +50,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (article.isDeleted()) {
             throw new ResourceNotFoundException(ARTICLE_ENTITY, id);
         }
+        monitoringArticle.incrementArticleViewed();
         return articleMapper.toResponse(article);
 
     }
@@ -64,8 +67,9 @@ public class ArticleServiceImpl implements ArticleService {
                 .category(category)
                 .createdBy(user)
                 .build();
-
-        return articleMapper.toResponse(articleRepository.save(article));
+        Article savedArticle = articleRepository.save(article);
+        monitoringArticle.incrementArticleCreated();
+        return articleMapper.toResponse(savedArticle);
     }
 
     @Override
@@ -91,6 +95,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
         article.softDelete(adminUsername);
         articleRepository.save(article);
+        monitoringArticle.incrementArticleDeleted();
     }
 
     @Override
@@ -122,6 +127,8 @@ public class ArticleServiceImpl implements ArticleService {
         var completedMissions = missionProgressService.incrementProgress(user.getId(), "READ_ARTICLE");
         MilestoneResponse response = milestoneService.recordAction(user.getId(), ActionType.READ_ARTICLE);
         response.setCompletedMissions(completedMissions);
+
+        monitoringArticle.incrementArticleMarkedRead();
         return response;
     }
 }
